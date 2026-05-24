@@ -422,7 +422,7 @@ class Tank {
       if (otherTank && otherTank.alive) {
         const dist = Math.sqrt((this.x - otherTank.x)**2 + (this.y - otherTank.y)**2);
         if (dist < 35) {
-          otherTank.takeDamage();
+          if (otherTank.takeDamage()) { endRound(this.isPlayer1 ? 1 : 2); return; }
           // 击飞
           const knockAngle = this.angle;
           otherTank.x += Math.cos(knockAngle) * 80;
