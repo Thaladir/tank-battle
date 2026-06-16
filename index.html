@@ -341,7 +341,7 @@ class Tank {
     this.darkColor = color; // will be set
     this.angle = isPlayer1 ? 0 : Math.PI; // 面对面
     this.speed = 2.5;
-    this.baseSpeed = 2.5;
+    this.baseSpeed = 2.1;
     this.hp = 3;
     this.maxHp = 3;
     this.alive = true;
@@ -357,7 +357,7 @@ class Tank {
     // 道具效果
     this.speedBoost = 0;
     this.rapidFire = 0;
-    this.shield = false;
+    this.shield = 0;
     this.minePlaced = false;
     // 无敌帧（被击中后短暂无敌）
     this.invincible = 0;
@@ -386,6 +386,7 @@ class Tank {
     else this.speed = this.baseSpeed;
     if (this.rapidFire > 0) { this.rapidFire--; this.shootDelay = Math.floor(this.baseShootDelay / 2); }
     else this.shootDelay = this.baseShootDelay;
+    if (this.shield > 0) this.shield--;
 
     // 冲刺
     if (this.dashing) {
@@ -745,7 +746,7 @@ class Missile {
 const POWER_TYPES = [
   { name: 'speed', color: '#00E676', icon: '⚡', duration: 300 },
   { name: 'rapid', color: '#FF6D00', icon: '🔥', duration: 300 },
-  { name: 'shield', color: '#448AFF', icon: '🛡', duration: 0 },
+  { name: 'shield', color: '#448AFF', icon: '🛡', duration: 300 },
   { name: 'heal', color: '#E91E63', icon: '❤', duration: 0 },
   { name: 'mine', color: '#F44336', icon: '💣', duration: 0 },
 ];
@@ -786,7 +787,7 @@ class PowerUp {
     switch (this.type.name) {
       case 'speed': tank.speedBoost = this.type.duration; break;
       case 'rapid': tank.rapidFire = this.type.duration; break;
-      case 'shield': tank.shield = true; break;
+      case 'shield': tank.shield = this.type.duration; break;
       case 'heal': tank.hp = Math.min(tank.hp + 1, tank.maxHp); break;
       case 'mine': this.placeMine(tank); break;
     }
@@ -1154,9 +1155,9 @@ function drawStatusIcons(ctx) {
   ];
   for (const { tank, x, y } of icons) {
     let ix = x;
-    if (tank.shield) {
+    if (tank.shield > 0) {
       ctx.fillStyle = '#448AFF'; ctx.font = '14px sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText('🛡', ix, y); ix += 22;
+      ctx.fillText('🛡' + Math.ceil(tank.shield/60) + 's', ix, y); ix += 42;
     }
     if (tank.speedBoost > 0) {
       ctx.fillStyle = '#00E676'; ctx.font = '14px sans-serif'; ctx.textAlign = 'left';
