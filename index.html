@@ -1,0 +1,2956 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>超级坦克大战 · Tank Battalion</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101310;
+        --panel: #1a1e19;
+        --line: #414637;
+        --muted: #a6ac9b;
+        --gold: #f6c642;
+        --white: #f3f0db;
+        --mono: "Courier New", monospace;
+        --cn: "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--white);
+        background-color: var(--bg);
+        background-image:
+          linear-gradient(#a4b49407 1px, transparent 1px),
+          linear-gradient(90deg, #a4b49407 1px, transparent 1px);
+        background-size: 32px 32px;
+        font:
+          14px var(--mono),
+          var(--cn);
+      }
+      button,
+      input {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        color: inherit;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible {
+        outline: 2px solid #fbe073;
+        outline-offset: 3px;
+      }
+      button:disabled {
+        cursor: default;
+      }
+      button {
+        border: 0;
+      }
+      #shell {
+        max-width: 1100px;
+        margin: auto;
+        padding: 0 34px;
+      }
+      header {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand,
+      .tools,
+      .status,
+      .keytip,
+      .hudhead,
+      .eyebrow,
+      .panelhead,
+      .foot,
+      .playerhead {
+        display: flex;
+        align-items: center;
+      }
+      .brand {
+        gap: 13px;
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+      }
+      .brand small {
+        display: block;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 2px;
+        margin-top: 1px;
+      }
+      .logobox {
+        background: var(--gold);
+        width: 43px;
+        height: 43px;
+        display: grid;
+        place-items: center;
+        box-shadow: inset 0 -4px #ad8a32;
+      }
+      .tools {
+        gap: 9px;
+      }
+      .status {
+        gap: 8px;
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: #b7c1ae;
+        margin-right: 10px;
+      }
+      .led {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: #a6c979;
+        box-shadow: 0 0 7px #94b86955;
+      }
+      .utility,
+      .minor {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #20241e;
+        border: 1px solid var(--line);
+        padding: 8px 12px;
+        color: #d4d8c6;
+        font-size: 12px;
+      }
+      .utility:hover,
+      .minor:hover {
+        background: #33392c;
+      }
+      .utility canvas {
+        width: 15px;
+        height: 15px;
+      }
+      canvas {
+        image-rendering: pixelated;
+      }
+      .cabinet {
+        margin: 25px 0 0;
+        border: 1px solid #555948;
+        background: var(--panel);
+        padding: 5px;
+        box-shadow:
+          0 9px 0 #0b0e0bd9,
+          0 20px 60px #0003;
+        position: relative;
+      }
+      .hero {
+        position: relative;
+        isolation: isolate;
+        height: clamp(292px, 30vw, 338px);
+        overflow: hidden;
+        background: #363c2a;
+      }
+      .hero canvas {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+      }
+      .hero:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+          linear-gradient(90deg, #101711d9, #181c0f66 37%, transparent 62%),
+          repeating-linear-gradient(0deg, #00000012 0 1px, transparent 1px 4px);
+        pointer-events: none;
+      }
+      .heroCopy {
+        position: absolute;
+        left: 4.1%;
+        top: 13%;
+      }
+      .eyebrow {
+        gap: 9px;
+        font-size: 10px;
+        letter-spacing: 2.5px;
+        font-weight: bold;
+        color: #f6d061;
+      }
+      .eyebrow:before {
+        content: "";
+        width: 24px;
+        height: 5px;
+        background: repeating-linear-gradient(115deg, var(--gold) 0 3px, transparent 3px 6px);
+      }
+      h1 {
+        margin: 16px 0 8px;
+        font: 1000 clamp(48px, 5.4vw, 72px) / 1.04 var(--cn);
+        letter-spacing: 3px;
+        text-shadow:
+          3px 3px #514c32,
+          6px 6px #151b12;
+      }
+      h1 span {
+        display: block;
+        color: var(--gold);
+        animation: titleglow 4s infinite;
+      }
+      @keyframes titleglow {
+        0%,
+        90%,
+        95%,
+        100% {
+          color: var(--gold);
+        }
+        92%,
+        97% {
+          color: #ffda70;
+        }
+      }
+      .english {
+        font-size: 13px;
+        letter-spacing: 4px;
+        font-weight: bold;
+        color: #dfdfbc;
+      }
+      .heroLabel {
+        position: absolute;
+        right: 20px;
+        bottom: 13px;
+        font-size: 10px;
+        background: #151a13df;
+        color: #ccd2ab;
+        padding: 5px 8px;
+        letter-spacing: 1px;
+      }
+      .heroLabel i {
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        background: var(--gold);
+        margin-right: 6px;
+        animation: blink 2s infinite;
+      }
+      .menuBody {
+        padding: 23px 24px 21px;
+        border-top: 4px solid #373e2f;
+      }
+      .panelhead {
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .panelhead h2 {
+        margin: 0;
+        font: 800 20px var(--cn);
+        letter-spacing: 2px;
+      }
+      .panelhead .slashes {
+        color: var(--gold);
+        letter-spacing: -2px;
+        font-weight: 900;
+        font-size: 21px;
+      }
+      .enlabel {
+        color: #a5af99;
+        font-size: 10px;
+        letter-spacing: 1.6px;
+      }
+      .panelhead:after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+        margin-left: 5px;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .mode {
+        --accent: #9fbbc4;
+        text-align: left;
+        background: #222720;
+        border: 1px solid #495042;
+        position: relative;
+        padding: 14px 16px 15px;
+        transition: background 0.13s;
+        min-height: 118px;
+      }
+      .mode:first-child {
+        --accent: var(--gold);
+      }
+      .mode:nth-child(2) {
+        --accent: #8fc6d0;
+      }
+      .mode:nth-child(3) {
+        --accent: #a5b48c;
+      }
+      .mode.sel {
+        border-color: var(--gold);
+        background: linear-gradient(115deg, #393725, #2c2d21);
+        box-shadow: inset 3px 0 var(--gold);
+      }
+      .modeTop {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .modeTop span {
+        color: var(--accent);
+        font-size: 10px;
+        letter-spacing: 1px;
+        border: 1px solid #80896a55;
+        padding: 2px 5px;
+      }
+      .mode canvas {
+        width: 34px;
+        height: 24px;
+      }
+      .mode strong {
+        display: block;
+        font: 800 20px var(--cn);
+        letter-spacing: 1px;
+      }
+      .mode small {
+        display: block;
+        font-size: 10px;
+        color: #aeb6a2;
+        letter-spacing: 1.3px;
+        margin-top: 4px;
+      }
+      .go {
+        font-style: normal;
+        position: absolute;
+        right: 15px;
+        bottom: 17px;
+        color: #838c78;
+        font-size: 18px;
+      }
+      .sel .go {
+        color: var(--gold);
+        animation: blink 2s infinite;
+      }
+      .foot {
+        margin: 0 24px;
+        border-top: 1px solid var(--line);
+        padding: 13px 0 9px;
+        justify-content: space-between;
+        color: #a4ad99;
+        font-size: 11px;
+      }
+      .foot > div,
+      .keytip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .foot .keytip {
+        margin-right: 8px;
+      }
+      kbd {
+        display: inline-grid;
+        place-items: center;
+        min-width: 19px;
+        padding: 2px 4px;
+        border: 1px solid #545c4c;
+        border-bottom-width: 2px;
+        background: #252a22;
+        color: #d8ddc9;
+        font: 10px var(--mono);
+        border-radius: 2px;
+      }
+      .outerFoot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #848d7c;
+        font-size: 10px;
+        letter-spacing: 1.3px;
+        margin: 18px 1px 24px;
+      }
+      .stripes {
+        width: 54px;
+        height: 8px;
+        background: repeating-linear-gradient(120deg, #67705b 0 3px, transparent 3px 6px);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.64;
+        }
+      }
+      #viewport {
+        position: relative;
+        margin: 23px auto 0;
+        overflow: hidden;
+      }
+      #game {
+        position: absolute;
+        width: 1032px;
+        height: 672px;
+        display: flex;
+        transform-origin: top left;
+        outline: 1px solid var(--line);
+      }
+      #field {
+        object-fit: contain;
+        width: 832px;
+        height: 672px;
+        background: #262c22;
+      }
+      #hud {
+        width: 200px;
+        padding: 20px 14px;
+        background: #1c201b;
+        border: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .hudhead {
+        font-size: 13px;
+        letter-spacing: 2px;
+        font-weight: bold;
+        color: var(--gold);
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 12px;
+      }
+      .playerhead {
+        gap: 8px;
+        font-weight: bold;
+        letter-spacing: 1px;
+      }
+      .playerhead canvas {
+        width: 32px;
+        height: 26px;
+      }
+      .hpval {
+        margin: 8px 0 4px;
+        color: #d0d6c4;
+        font-size: 12px;
+      }
+      .hpbar {
+        height: 10px;
+        background: #563733;
+      }
+      .hpbar i {
+        height: 100%;
+        display: block;
+        background: repeating-linear-gradient(90deg, #97b97e 0 8px, #7c9a67 8px 10px);
+      }
+      .upgrades {
+        font-size: 12px;
+        line-height: 1.7;
+        min-height: 28px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      .score {
+        text-align: center;
+        border-block: 1px solid var(--line);
+        padding: 13px 0;
+        color: var(--gold);
+      }
+      .score b {
+        font-size: 31px;
+        display: block;
+      }
+      .score small {
+        font-size: 11px;
+      }
+      .rounddots {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 7px;
+      }
+      .rounddots i {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #647058;
+        border-radius: 50%;
+      }
+      .hudbottom {
+        margin-top: auto;
+        font-size: 11px;
+        color: var(--muted);
+        display: grid;
+        gap: 10px;
+      }
+      .blur {
+        filter: blur(3px);
+      }
+      #overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        background: #080c08bd;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        overflow: auto;
+      }
+      .dialog {
+        max-width: 100%;
+        width: 465px;
+        max-height: 94vh;
+        overflow: auto;
+        background: #20251e;
+        border: 1px solid #7e866a;
+        box-shadow:
+          0 5px 0 #0b0e09,
+          0 0 0 5px #191e16;
+        padding: 27px;
+        position: relative;
+      }
+      .dialog:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 4px;
+        background: var(--gold);
+      }
+      .dialog h2 {
+        font: 900 30px var(--cn);
+        margin: 9px 0 18px;
+      }
+      .dialog p {
+        color: #bbc2ae;
+        line-height: 1.7;
+      }
+      .rowbtn,
+      .primary {
+        width: 100%;
+        border: 1px solid #59624e;
+        background: #2a3027;
+        padding: 12px 14px;
+        text-align: left;
+        margin-top: 7px;
+        font-weight: bold;
+      }
+      .rowbtn small {
+        display: block;
+        color: #adb6a1;
+        font-weight: normal;
+        margin-top: 3px;
+      }
+      .rowbtn:hover,
+      .rowbtn:focus-visible {
+        border-color: var(--gold);
+        background: #373927;
+      }
+      .primary {
+        background: var(--gold);
+        color: #262718;
+        text-align: center;
+        border-color: var(--gold);
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .actions > * {
+        flex: 1;
+      }
+      .dialog label {
+        display: block;
+        color: #ccd2c0;
+        margin: 13px 0 5px;
+        font-size: 12px;
+      }
+      .dialog input {
+        width: 100%;
+        background: #131811;
+        border: 1px solid #57604e;
+        color: var(--white);
+        padding: 10px;
+      }
+      .notice {
+        min-height: 16px;
+        color: var(--gold);
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 10px;
+      }
+      .helpTable {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .helpTable td,
+      .helpTable th {
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        padding: 9px 4px;
+      }
+      .dialog.wide {
+        width: 1080px;
+      }
+      .drafts {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .drafts section {
+        flex: 1;
+        min-width: min(100%, 425px);
+      }
+      .drafts h3 {
+        font-size: 14px;
+        color: var(--gold);
+      }
+      .picks {
+        display: flex;
+        gap: 7px;
+      }
+      .perk {
+        flex: 1;
+        max-width: 160px;
+        height: 220px;
+        background: #282b3a;
+        color: #e2e3dd;
+        border: 2px solid #565b70;
+        padding: 12px 7px;
+        transition: transform 0.15s;
+        text-align: center;
+      }
+      .perk span,
+      .perk b,
+      .perk small {
+        display: block;
+      }
+      .perk span {
+        font-size: 35px;
+        margin: 16px 0;
+      }
+      .perk small {
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 10px;
+        color: #c2c4cf;
+      }
+      .perk.cursor {
+        transform: scale(1.05);
+        border-color: var(--gold);
+      }
+      .drafts section:nth-child(2) .perk.cursor {
+        border-color: #83c6dc;
+      }
+      .perk:focus-visible {
+        outline: 2px dashed #ccd1bd;
+      }
+      .perk:not(:disabled):hover {
+        background: #35394a;
+      }
+      .perk.chosen {
+        animation: flash 0.45s;
+        background: #304033;
+        border-color: #92b785;
+      }
+      @keyframes flash {
+        50% {
+          background: #997e36;
+        }
+      }
+      .count {
+        float: right;
+        color: var(--gold);
+      }
+      .resultscore {
+        font-size: 48px;
+        color: var(--gold);
+        text-align: center;
+        margin: 16px;
+      }
+      .hint {
+        color: #a4af99;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+      .roomnum {
+        font-size: 40px;
+        letter-spacing: 8px;
+        color: var(--gold);
+      }
+      /* ── 街机风格角标装饰 ──────────────────────────── */
+      .corner {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        z-index: 3;
+        pointer-events: none;
+      }
+      .corner-tl { top: 4px; left: 4px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+      .corner-tr { top: 4px; right: 4px; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+      .corner-bl { bottom: 4px; left: 4px; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+      .corner-br { bottom: 4px; right: 4px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+      /* ── PRESS ENTER 提示 ───────────────────────────── */
+      .pressStart {
+        margin-top: 20px;
+        font-size: 11px;
+        letter-spacing: 3px;
+        color: var(--gold);
+        font-weight: bold;
+        animation: pressStartBlink 1.3s step-end infinite;
+        display: inline-block;
+      }
+      @keyframes pressStartBlink {
+        0%, 49% { opacity: 1; }
+        50%, 100% { opacity: 0; }
+      }
+      /* ── 提示滚动条 ─────────────────────────────────── */
+      .ticker {
+        background: #0d1110;
+        border-bottom: 1px solid #252b22;
+        padding: 7px 24px;
+        font-size: 10px;
+        color: #7e8977;
+        letter-spacing: 1.3px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 30px;
+      }
+      .ticker-label {
+        color: var(--gold);
+        font-size: 9px;
+        letter-spacing: 2px;
+        font-weight: bold;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .tickerText {
+        transition: opacity 0.35s;
+        flex: 1;
+      }
+      .tickerText.fade { opacity: 0; }
+      /* ── 卡片选中效果增强 ───────────────────────────── */
+      .mode {
+        min-height: 198px;
+        padding-bottom: 38px;
+      }
+      .mode.sel {
+        border-color: var(--gold);
+        background: linear-gradient(115deg, #393725, #2c2d21);
+        box-shadow: inset 3px 0 var(--gold), 0 0 20px #f6c64218;
+        animation: cardPulse 2.5s ease-in-out infinite;
+      }
+      @keyframes cardPulse {
+        0%, 100% { box-shadow: inset 3px 0 var(--gold), 0 0 12px #f6c64212; }
+        50% { box-shadow: inset 3px 0 var(--gold), 0 0 32px #f6c6422a; }
+      }
+      /* ── 卡片特性列表 ───────────────────────────────── */
+      .modeFeats {
+        margin: 8px 0 0;
+        font-size: 10px;
+        color: #6e776a;
+        letter-spacing: 0.4px;
+        line-height: 1.65;
+        list-style: none;
+        padding: 0;
+      }
+      .mode.sel .modeFeats { color: #9fa899; }
+      .modeFeats li:before { content: "· "; color: var(--gold); }
+      .modeDiff {
+        font-size: 9px;
+        letter-spacing: 0.5px;
+        color: #857842;
+        margin-top: 3px;
+        font-weight: bold;
+      }
+      @media (max-width: 700px) {
+        #shell {
+          padding: 0 12px;
+        }
+        header {
+          height: 64px;
+        }
+        .status {
+          display: none;
+        }
+        .brand {
+          font-size: 15px;
+        }
+        .brand small {
+          font-size: 8px;
+        }
+        .utility {
+          padding: 7px;
+        }
+        .hero {
+          height: 250px;
+        }
+        .heroCopy {
+          left: 5%;
+          top: 16%;
+        }
+        h1 {
+          font-size: 44px;
+        }
+        .english {
+          font-size: 10px;
+        }
+        .menuBody {
+          padding: 16px 12px;
+        }
+        .cards {
+          gap: 6px;
+        }
+        .mode {
+          padding: 10px 8px;
+          min-height: 112px;
+        }
+        .mode strong {
+          font-size: 16px;
+        }
+        .mode small {
+          font-size: 8px;
+          letter-spacing: 0.5px;
+        }
+        .go {
+          display: none;
+        }
+        .foot {
+          margin: 0 12px;
+        }
+        .foot > span {
+          display: none;
+        }
+        .heroLabel {
+          font-size: 8px;
+        }
+        .outerFoot {
+          font-size: 8px;
+        }
+        .tools {
+          gap: 5px;
+        }
+        .enlabel {
+          font-size: 9px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="shell">
+      <header>
+        <div class="brand">
+          <div class="logobox"><canvas data-icon="logo" width="34" height="24"></canvas></div>
+          <div>TANK BATTALION<small>街机游戏系统 / ARCADE SYSTEM</small></div>
+        </div>
+        <div class="tools">
+          <span class="status"><i class="led"></i><span id="systemStatus">SYSTEM READY</span></span
+          ><button class="utility" id="sound" aria-pressed="true">
+            <canvas data-icon="sound" width="16" height="16"></canvas><span>音效</span></button
+          ><button class="utility" id="help">
+            <canvas data-icon="keys" width="16" height="16"></canvas>操作指南
+          </button>
+        </div>
+      </header>
+      <section class="cabinet" id="menu">
+        <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+        <div class="hero">
+          <canvas
+            id="cover"
+            width="420"
+            height="140"
+            aria-label="夕阳下驶过山地的像素坦克"
+          ></canvas>
+          <div class="heroCopy">
+            <div class="eyebrow">ARCADE EDITION</div>
+            <h1>超级<span>坦克大战</span></h1>
+            <div class="english">SUPER TANK BATTLE</div>
+            <div class="pressStart">▶ PRESS ENTER TO START</div>
+          </div>
+          <div class="heroLabel"><i></i>战场预览 / DEMO</div>
+        </div>
+        <div class="ticker"><span class="ticker-label">▶ TIP</span><span class="tickerText" id="tickerText">砖墙承受两发炮弹即摧毁；钢墙可反弹炮弹，善用反弹可奇袭对手。</span></div>
+        <div class="menuBody">
+          <div class="panelhead">
+            <span class="slashes">//</span>
+            <h2>选择游戏模式</h2>
+            <span class="enlabel">MODE SELECT</span>
+          </div>
+          <div class="cards" id="modes"></div>
+        </div>
+        <div class="foot">
+          <div>
+            <span class="keytip"><kbd>←</kbd><kbd>→</kbd> 切换模式</span
+            ><span class="keytip"><kbd>ENTER</kbd> 确认</span>
+          </div>
+          <span>7 局 4 胜制</span>
+        </div>
+      </section>
+      <div id="viewport" hidden>
+        <div id="game">
+          <canvas id="field" width="832" height="672" aria-label="坦克对战战场"></canvas>
+          <aside id="hud"></aside>
+        </div>
+      </div>
+      <footer class="outerFoot">
+        <span>◆ &nbsp; <span id="footerKeys">支持键盘与鼠标选择模式</span></span
+        ><span class="stripes" aria-hidden="true"></span>
+      </footer>
+    </main>
+    <div id="overlay" hidden>
+      <div
+        class="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialogTitle"
+        id="dialog"
+      ></div>
+    </div>
+    <script>
+      "use strict";
+      // ===== 1. 常量与配置 =====
+      const $ = (s) => document.querySelector(s),
+        field = $("#field"),
+        ctx = field.getContext("2d");
+      const TILE = 32,
+        BASE_HP = 50,
+        BASE_BULLET_SPEED = 5,
+        BASE_BULLET_LIMIT = 4,
+        LIFESTEAL_HP = 20,
+        HOMING_TURN = 0.05,
+        HP_PER_STACK = 40,
+        SHIELD_PER_STACK = 20,
+        STEP = 1000 / 60,
+        DX = [0, 1, 0, -1],
+        DY = [-1, 0, 1, 0];
+      const colors = ["#efc34d", "#83c6dc", "#a9aca0"],
+        names = ["单人挑战", "本地双人", "联机对战"];
+      const emptyInput = () => ({ d: -1, f: false }),
+        limit = (v, a, b) => Math.min(b, Math.max(a, v));
+      let state = "menu",
+        mode = "solo",
+        difficulty = 1,
+        selected = 0,
+        world = null,
+        ai = null,
+        net = null,
+        ticks = 0,
+        fps = 60,
+        particles = [],
+        banner = 0,
+        draft = null,
+        helpBack = null;
+      function rng(seed) {
+        return () => {
+          seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+          return seed / 4294967296;
+        };
+      }
+      function rand() {
+        world.random = (Math.imul(world.random, 1664525) + 1013904223) >>> 0;
+        return world.random / 4294967296;
+      }
+      function seedValue() {
+        return crypto.getRandomValues(new Uint32Array(1))[0];
+      }
+      // ===== 2. 资源管理：像素图标、封面与坦克精灵 =====
+      function box(g, c, x, y, w, h) {
+        g.fillStyle = c;
+        g.fillRect(Math.round(x), Math.round(y), w, h);
+      }
+      function poly(g, c, coords) {
+        g.fillStyle = c;
+        g.beginPath();
+        coords.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+        g.closePath();
+        g.fill();
+      }
+      function icon(canvas, kind, color) {
+        const g = canvas.getContext("2d");
+        g.clearRect(0, 0, canvas.width, canvas.height);
+        const r = (x, y, w, h, c = color) => box(g, c, x, y, w, h);
+        function tiny(x, y, k) {
+          r(x + 3 * k, y, 5 * k, 2 * k);
+          r(x + 2 * k, y + 2 * k, 8 * k, 3 * k);
+          r(x + 8 * k, y + k, 5 * k, k);
+          r(x, y + 5 * k, 12 * k, 2 * k);
+          r(x + k, y + 7 * k, 10 * k, k);
+          [2, 5, 8].forEach((a) => r(x + a * k, y + 5 * k, 2 * k, k, "#252a20"));
+        }
+        if (kind === "logo" || kind === "solo") {
+          tiny(2, 4, 2);
+        } else if (kind === "local") {
+          tiny(11, 1, 1.7);
+          tiny(0, 10, 1.6);
+        } else if (kind === "online") {
+          r(13, 2, 8, 5);
+          r(15, 7, 4, 4);
+          r(5, 10, 24, 2);
+          r(5, 10, 2, 6);
+          r(27, 10, 2, 6);
+          r(1, 16, 10, 6);
+          r(23, 16, 10, 6);
+        } else if (kind === "keys") {
+          r(0, 3, 16, 11);
+          r(1, 4, 14, 9, "#242921");
+          for (let i = 0; i < 4; i++) r(2 + i * 3, 6, 2, 2);
+          r(4, 10, 8, 1);
+        } else {
+          r(1, 6, 4, 5);
+          poly(g, color, [
+            [4, 6],
+            [8, 2],
+            [8, 14],
+            [4, 10],
+          ]);
+          if (!muted) {
+            r(10, 5, 2, 6);
+            r(13, 3, 1, 2);
+            r(14, 5, 1, 6);
+            r(13, 11, 1, 2);
+          }
+        }
+      }
+      // 低分辨率分层绘制封面。折线山脊、错层装甲和履带共用整数像素坐标。
+      function paintCover(time) {
+        const g = $("#cover").getContext("2d"),
+          random = rng(867);
+        const rect = (c, x, y, w, h) => box(g, c, x, y, w, h),
+          p = (c, pts) => poly(g, c, pts);
+        g.imageSmoothingEnabled = false;
+        const sky = g.createLinearGradient(0, 0, 0, 104);
+        sky.addColorStop(0, "#414c3c");
+        sky.addColorStop(0.52, "#858663");
+        sky.addColorStop(1, "#c6aa72");
+        g.fillStyle = sky;
+        g.fillRect(0, 0, 420, 140);
+        const sun = "#dba764";
+        for (let y = -27; y <= 27; y++) {
+          let x = Math.floor(Math.sqrt(27 * 27 - y * y));
+          rect(y < 0 ? "#e8bd77" : sun, 337 - x, 44 + y, 2 * x, 1);
+        }
+        for (let i = 0; i < 32; i++) {
+          let x = random() * 450 - 25,
+            y = random() * 65,
+            w = 4 + random() * 35;
+          rect(y < 28 ? "#68725a" : "#a5a181", x, y, w, 1);
+          if (i % 4 === 0) rect("#849078", x + 4, y - 2, (w * 0.45) | 0, 2);
+        }
+        function ridge(base, amp, c, step) {
+          const pts = [
+            [0, 140],
+            [0, base],
+          ];
+          let last = base;
+          for (let x = 0; x < 440; x += step) {
+            const next = base + Math.round((random() - 0.5) * amp + Math.sin(x / 24) * amp * 0.3);
+            pts.push([x, last], [x, next]);
+            last = next;
+          }
+          pts.push([440, 140]);
+          p(c, pts);
+        }
+        ridge(66, 15, "#80846a", 4);
+        ridge(73, 18, "#676f55", 3);
+        ridge(85, 16, "#4b5841", 3);
+        function pine(x, y, h, c) {
+          rect(c, x, y - h, 1, h);
+          for (let n = 1; n < 5; n++) {
+            let w = Math.ceil((h * n) / 15);
+            rect(
+              c,
+              x - w,
+              y - h + Math.round((h * n) / 5),
+              w * 2 + 1,
+              Math.max(2, Math.round(h / 5)),
+            );
+          }
+        }
+        for (let i = 0; i < 160; i++) {
+          let x = random() * 430;
+          pine(x, 89 + 5 * Math.sin(x / 18), 4 + random() * 12, "#45503b");
+        }
+        ridge(96, 8, "#77805a", 5);
+        ridge(108, 11, "#515c40", 4);
+        for (let i = 0; i < 32; i++) {
+          let x = random() * 430;
+          pine(x, 104 + 5 * Math.sin(x / 22), 6 + random() * 18, "#38432f");
+        }
+        for (let i = 0; i < 2; i++) {
+          let x = 126 + ((time * 0.001 * (i ? 3 : 2) + i * 64) % 94),
+            y = 97 + i * 7;
+          rect("#343e2c", x, y, 10, 3);
+          rect("#38432e", x + 2, y - 2, 5, 2);
+          rect("#3e4832", x + 5, y - 2, 7, 1);
+        }
+        ridge(121, 5, "#333e2a", 5);
+        for (let i = 0; i < 270; i++) {
+          let x = random() * 420,
+            y = 111 + random() * 29;
+          rect(["#47513a", "#6c7351", "#283221"][i % 3], x, y, 2 + ((random() * 8) | 0), 1);
+        }
+        g.save();
+        g.translate(215, 11 + (Math.floor(time / 850) % 2)); // 右侧主坦克：炮管、首上装甲、六个负重轮及履带侧裙
+        const o = "#252c21",
+          dark = "#38412e",
+          mid = "#65704e",
+          lt = "#929b6b",
+          hi = "#b3b58a",
+          shadow = "#485139";
+        p("#242c21", [
+          [0, 105],
+          [18, 101],
+          [112, 96],
+          [149, 100],
+          [130, 108],
+          [29, 114],
+        ]);
+        p(o, [
+          [13, 81],
+          [102, 75],
+          [144, 80],
+          [146, 89],
+          [134, 99],
+          [39, 110],
+          [18, 106],
+          [9, 94],
+        ]);
+        p(shadow, [
+          [14, 86],
+          [124, 75],
+          [140, 82],
+          [133, 95],
+          [36, 106],
+          [19, 102],
+          [12, 92],
+        ]);
+        p(o, [
+          [17, 89],
+          [117, 79],
+          [135, 82],
+          [129, 93],
+          [37, 104],
+          [21, 100],
+        ]);
+        for (let i = 0; i < 7; i++) {
+          let x = 26 + i * 15,
+            y = (93 - i * 1.45) | 0;
+          p(mid, [
+            [x - 6, y - 3],
+            [x - 3, y - 7],
+            [x + 4, y - 7],
+            [x + 7, y - 4],
+            [x + 7, y + 3],
+            [x + 3, y + 7],
+            [x - 3, y + 7],
+            [x - 6, y + 4],
+          ]);
+          rect(shadow, x - 3, y - 4, 7, 8);
+          rect(lt, x - 2, y - 3, 4, 4);
+          rect(dark, x, y, 2, 2);
+        }
+        for (let i = 0; i < 25; i++) {
+          rect("#788065", 24 + i * 4.4, 103 - i * 0.46, 3, 2);
+          rect("#262d24", 24 + i * 4.4, 105 - i * 0.46, 2, 2);
+        }
+        p(o, [
+          [0, 76],
+          [20, 65],
+          [110, 55],
+          [141, 62],
+          [151, 73],
+          [140, 81],
+          [34, 94],
+          [0, 84],
+        ]);
+        p(mid, [
+          [3, 75],
+          [22, 65],
+          [111, 56],
+          [139, 62],
+          [118, 69],
+          [31, 80],
+        ]);
+        p(lt, [
+          [5, 75],
+          [28, 67],
+          [100, 59],
+          [115, 61],
+          [30, 80],
+        ]);
+        p(shadow, [
+          [4, 77],
+          [32, 82],
+          [35, 91],
+          [3, 83],
+        ]);
+        p("#7c8660", [
+          [33, 81],
+          [142, 66],
+          [148, 73],
+          [137, 79],
+          [36, 91],
+        ]);
+        for (let i = 0; i < 5; i++) {
+          let x = 39 + i * 19,
+            y = 81 - i * 2.5;
+          p(i % 2 ? mid : "#717c56", [
+            [x, y],
+            [x + 17, y - 2],
+            [x + 16, y + 5],
+            [x + 1, y + 8],
+          ]);
+          rect(hi, x + 1, y, 14, 1);
+          rect(dark, x + 2, y + 4, 2, 2);
+        }
+        for (let i = 0; i < 6; i++) rect(dark, 14 + i * 3, 73 - i * 0.6, 2, 3);
+        p(o, [
+          [35, 66],
+          [33, 53],
+          [46, 43],
+          [76, 38],
+          [98, 43],
+          [108, 54],
+          [102, 63],
+          [57, 72],
+        ]);
+        p(mid, [
+          [36, 54],
+          [49, 44],
+          [77, 40],
+          [96, 45],
+          [101, 55],
+          [61, 62],
+        ]);
+        p(lt, [
+          [37, 53],
+          [50, 44],
+          [76, 40],
+          [87, 43],
+          [62, 48],
+          [53, 55],
+        ]);
+        p(shadow, [
+          [36, 55],
+          [57, 61],
+          [61, 69],
+          [39, 65],
+        ]);
+        p("#74805a", [
+          [58, 60],
+          [100, 48],
+          [105, 55],
+          [100, 61],
+          [61, 69],
+        ]);
+        rect(dark, 49, 40, 19, 4);
+        rect(lt, 51, 39, 14, 2);
+        rect(o, 56, 34, 3, 6);
+        rect(mid, 54, 33, 10, 2);
+        rect(o, 40, 33, 1, 17);
+        rect(mid, 39, 25, 1, 9);
+        p(o, [
+          [92, 44],
+          [157, 21],
+          [161, 21],
+          [163, 28],
+          [100, 55],
+          [93, 53],
+        ]);
+        p(mid, [
+          [97, 45],
+          [157, 23],
+          [160, 27],
+          [99, 51],
+        ]);
+        p(hi, [
+          [99, 44],
+          [156, 23],
+          [157, 24],
+          [100, 46],
+        ]);
+        p(dark, [
+          [150, 23],
+          [165, 17],
+          [169, 18],
+          [171, 26],
+          [156, 32],
+          [152, 31],
+        ]);
+        p(lt, [
+          [151, 24],
+          [166, 18],
+          [168, 20],
+          [153, 27],
+        ]);
+        p(o, [
+          [166, 21],
+          [168, 20],
+          [169, 25],
+          [167, 26],
+        ]);
+        rect("#b5b89b", 72, 53, 2, 7);
+        rect("#b5b89b", 69, 56, 8, 2);
+        rect(lt, 16, 78, 7, 2);
+        rect("#dcca86", 13, 78, 3, 3);
+        for (let i = 0; i < 14; i++)
+          rect(i % 2 ? lt : shadow, 44 + random() * 41, 47 + random() * 10, 2, 1);
+        g.restore();
+        for (let i = 0; i < 23; i++) {
+          let x = random() * 425,
+            y = 135 + random() * 6;
+          pine(x, y, 2 + random() * 6, "#252e20");
+        }
+      }
+      function tankSprite(g, t, c, alpha = 1) {
+        g.save();
+        g.translate(Math.round(t.x), Math.round(t.y));
+        g.rotate((t.dir * Math.PI) / 2);
+        g.globalAlpha = alpha;
+        const r = (k, x, y, w, h) => box(g, k, x, y, w, h);
+        r("#171c17", -14, -12, 28, 27);
+        r("#454c3e", -13, -12, 5, 24);
+        r("#454c3e", 8, -12, 5, 24);
+        for (let j = -11; j < 12; j += 5) {
+          r("#a5aa8b", -13, j, 4, 2);
+          r("#a5aa8b", 9, j, 4, 2);
+        }
+        r(c, -9, -11, 18, 22);
+        r("#34392b", -6, -7, 13, 15);
+        r(c, -5, -8, 10, 13);
+        r("#e7e6c8", -4, -8, 9, 2);
+        r("#393d2f", -3, -20, 7, 14);
+        r(c, -2, -20, 4, 14);
+        r("#fff0bd", -2, -20, 2, 3);
+        g.restore();
+      }
+      // ===== 3. 音效系统：在首次交互后启用音频上下文 =====
+      let audio = null,
+        muted = false,
+        motor = null,
+        motorGain = null;
+      function wakeAudio() {
+        try {
+          if (!audio) {
+            audio = new (window.AudioContext || window.webkitAudioContext)();
+            motor = audio.createOscillator();
+            motorGain = audio.createGain();
+            motor.type = "sawtooth";
+            motor.frequency.value = 36;
+            motorGain.gain.value = 0;
+            motor.connect(motorGain).connect(audio.destination);
+            motor.start();
+          }
+          if (audio.state === "suspended") audio.resume().catch(() => {});
+        } catch {}
+      }
+      function tone(freq, end, duration, type = "square", vol = 0.035, delay = 0) {
+        if (!audio || muted) return;
+        const start = audio.currentTime + delay,
+          o = audio.createOscillator(),
+          v = audio.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, start);
+        o.frequency.exponentialRampToValueAtTime(end, start + duration);
+        v.gain.setValueAtTime(vol, start);
+        v.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        o.connect(v).connect(audio.destination);
+        o.start(start);
+        o.stop(start + duration);
+      }
+      function noise(sec, volume) {
+        if (!audio || muted) return;
+        const length = Math.floor(sec * audio.sampleRate),
+          buffer = audio.createBuffer(1, length, audio.sampleRate),
+          data = buffer.getChannelData(0);
+        for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 3;
+        let s = audio.createBufferSource(),
+          v = audio.createGain();
+        s.buffer = buffer;
+        v.gain.value = volume;
+        s.connect(v).connect(audio.destination);
+        s.start();
+      }
+      function sound(id) {
+        if (id === "shot") {
+          tone(680, 160, 0.08, "sine");
+          noise(0.08, 0.065);
+        }
+        if (id === "hit") tone(240, 64, 0.15);
+        if (id === "boom") {
+          tone(90, 25, 0.5);
+          noise(0.5, 0.13);
+        }
+        if (id === "pick") tone(100, 800, 0.2, "sine");
+        if (id === "win")
+          [262, 330, 392, 523, 392, 659].forEach((f, i) =>
+            tone(f, f, 0.16, "square", 0.03, i * 0.12),
+          );
+      }
+      // ===== 4. 地图生成器 =====
+      const GROUND = 0,
+        BRICK = 1,
+        STEEL = 2,
+        GRASS = 3,
+        WATER = 4;
+      // 三张开场地图的中央地形。两边留出出生区，首两局抽取不同布局。
+      const smallMaps = [
+        {
+          name: "砖窑小院",
+          core: [
+            "....",
+            "bb.b",
+            "....",
+            ".s..",
+            "....",
+            "b..b",
+            "....",
+            "..s.",
+            "....",
+            "b.bb",
+            "....",
+          ],
+        },
+        {
+          name: "浅滩双桥",
+          core: [
+            "....",
+            ".ww.",
+            ".ww.",
+            "....",
+            "g..g",
+            ".ww.",
+            "g..g",
+            "....",
+            ".ww.",
+            ".ww.",
+            "....",
+          ],
+        },
+        {
+          name: "林间哨所",
+          core: [
+            "....",
+            "g..g",
+            "gg..",
+            "s..b",
+            "..gg",
+            ".gg.",
+            "gg..",
+            "b..s",
+            "..gg",
+            "g..g",
+            "....",
+          ],
+        },
+      ];
+      const laterArenas = [
+        [18, 15, "山口"],
+        [20, 16, "前哨"],
+        [22, 18, "河谷"],
+        [24, 19, "要塞"],
+        [26, 21, "边境"],
+      ];
+      function roundArena(round, opening) {
+        if (round <= 2) {
+          const layout = opening[round - 1];
+          return { cols: 16, rows: 13, name: smallMaps[layout].name, layout };
+        }
+        const [cols, rows, name] = laterArenas[round - 3];
+        return { cols, rows, name, layout: null };
+      }
+      function spawnPoints({ cols, rows }) {
+        const y = Math.floor(rows / 2);
+        return [
+          [2, y],
+          [cols - 3, y],
+        ];
+      }
+      function makeMap(seed, arena) {
+        const { cols, rows, layout } = arena,
+          next = rng(seed),
+          map = Array(cols * rows).fill(GROUND);
+        if (layout !== null) {
+          const legend = { ".": GROUND, b: BRICK, s: STEEL, g: GRASS, w: WATER };
+          smallMaps[layout].core.forEach((line, y) =>
+            [...line].forEach((ch, x) => {
+              map[(y + 1) * cols + x + 6] = legend[ch];
+            }),
+          );
+          // 上下两翼各有一组掩体，开场可选择中路交战或从侧翼接近。
+          for (const x of [3, 4, cols - 5, cols - 4])
+            for (const y of [2, rows - 3]) map[y * cols + x] = [BRICK, GRASS, STEEL][layout];
+        } else {
+          for (let i = 0; i < Math.round(cols * rows * 0.18); i++) {
+            const x = 1 + Math.floor(next() * (cols - 2)),
+              y = 1 + Math.floor(next() * (rows - 2)),
+              r = next();
+            const type = r < 0.41 ? BRICK : r < 0.56 ? STEEL : r < 0.82 ? GRASS : WATER,
+              vertical = next() < 0.5,
+              len = 1 + Math.floor(next() * 4);
+            for (let j = 0; j < len; j++) {
+              const cx = x + (vertical ? 0 : j),
+                cy = y + (vertical ? j : 0);
+              if (cx < cols - 1 && cy < rows - 1) map[cy * cols + cx] = type;
+            }
+          }
+          const lane = 2 + Math.floor(next() * (rows - 4));
+          for (let x = 2; x <= cols - 3; x++) map[lane * cols + x] = GROUND;
+          for (const [x, y] of spawnPoints(arena))
+            for (let j = Math.min(y, lane); j <= Math.max(y, lane); j++) map[j * cols + x] = GROUND;
+        }
+        for (const [x, y] of spawnPoints(arena))
+          for (let j = y - 3; j <= y + 3; j++)
+            for (let i = Math.max(1, x - 3); i <= Math.min(cols - 2, x + 3); i++)
+              map[j * cols + i] = GROUND;
+        for (let y = 0; y < rows; y++)
+          for (let x = 0; x < cols; x++)
+            if (!x || !y || x === cols - 1 || y === rows - 1) map[y * cols + x] = STEEL;
+        return map;
+      }
+      const cell = (x, y) => Math.floor(y / TILE) * world.arena.cols + Math.floor(x / TILE),
+        tile = (x, y) => world.map[cell(x, y)];
+      function wallAt(x, y) {
+        return [BRICK, STEEL, WATER].includes(tile(x, y));
+      }
+      function fits(x, y, id) {
+        const r = 12;
+        const other = world.tanks[1 - id];
+        return (
+          !(other && Math.abs(other.x - x) < 24 && Math.abs(other.y - y) < 24) &&
+          ![
+            [-r, -r],
+            [r, -r],
+            [-r, r],
+            [r, r],
+          ].some(([a, b]) => wallAt(x + a, y + b))
+        );
+      }
+      function drawTile(g, type, x, y, i) {
+        const r = (c, a, b, w, h) => box(g, c, x + a, y + b, w, h);
+        if (type === GROUND || type === GRASS) {
+          r(i % 3 ? "#30392b" : "#323b2d", 0, 0, 32, 32);
+          r("#3c4634", (i * 7) % 26, (i * 11) % 26, 3, 2);
+          r("#293326", (i * 13) % 29, (i * 5) % 29, 2, 1);
+        }
+        if (type === BRICK) {
+          r("#493c2e", 0, 0, 32, 32);
+          for (let j = 0; j < 4; j++)
+            for (let k = -1; k < 2; k++) {
+              let a = k * 16 + (j % 2) * 8,
+                start = Math.max(0, a),
+                w = Math.min(32, a + 15) - start;
+              if (w <= 0) continue;
+              r((i + j + k) % 3 ? "#a47852" : "#ae835b", start, j * 8, w, 7);
+              r("#c69a6e", start, j * 8, w, 1);
+            }
+          if (world.damage[i]) {
+            r("#493b2e", 13, 3, 3, 11);
+            r("#493b2e", 16, 13, 4, 12);
+            r("#493b2e", 19, 22, 4, 7);
+          }
+        }
+        if (type === STEEL) {
+          r("#37413b", 0, 0, 32, 32);
+          r("#788477", 1, 1, 29, 29);
+          r("#939e8b", 2, 2, 27, 2);
+          r("#556154", 4, 5, 24, 23);
+          r("#697767", 5, 6, 22, 20);
+          for (let a of [3, 26]) for (let b of [3, 26]) r("#353e35", a, b, 2, 2);
+        }
+        if (type === WATER) {
+          r("#324f50", 0, 0, 32, 32);
+          for (let j = 0; j < 3; j++) {
+            let a = (i * 3 + j * 7 + (world.frame >> 4)) % 24;
+            r("#50706c", a, 4 + j * 10, 7, 2);
+            r("#749086", a + 2, 4 + j * 10, 3, 1);
+          }
+        }
+      }
+      function grass(g, x, y, i) {
+        const next = rng(i * 17 + 7);
+        for (let j = 0; j < 32; j++) {
+          let a = Math.floor(next() * 29),
+            b = Math.floor(next() * 25);
+          box(g, ["#4f6540dc", "#435939ed", "#708153cf"][j % 3], x + a, y + b, 2, 6);
+          box(g, "#536a43dc", x + a + 2, y + b + 3, 2, 3);
+        }
+      }
+      // ===== 5. 坦克类 =====
+      class Tank {
+        constructor(id, perks) {
+          this.id = id;
+          this.p = perks;
+          [this.x, this.y] = spawnPoints(world.arena)[id].map((v) => v * TILE + 16);
+          this.dir = id ? 3 : 1;
+          this.max = BASE_HP + HP_PER_STACK * perks[2];
+          this.hp = this.max;
+          this.cool = 0;
+          this.shield = perks[4];
+          this.armor = SHIELD_PER_STACK * perks[6];
+          this.shots = 0;
+          this.walls = [];
+          this.travel = 0;
+          this.vx = this.vy = 0;
+        }
+        update(input) {
+          this.vx = this.vy = 0;
+          if (this.cool > 0) this.cool--;
+          const d = input.d;
+          if (d >= 0) {
+            this.dir = d;
+            const speed = Math.min(3 + 1.5 * this.p[3], input.step ?? Infinity),
+              nx = this.x + DX[d] * speed,
+              ny = this.y + DY[d] * speed;
+            if (fits(nx, ny, this.id)) {
+              this.vx = nx - this.x;
+              this.vy = ny - this.y;
+              this.x = nx;
+              this.y = ny;
+              this.travel += speed;
+              if (this.p[10] && this.travel >= 96 / this.p[10]) this.build();
+            }
+          }
+          if (input.f) this.fire();
+        }
+        build() {
+          const i = cell(this.x - DX[this.dir] * 36, this.y - DY[this.dir] * 36),
+            cx = (i % world.arena.cols) * 32 + 16,
+            cy = Math.floor(i / world.arena.cols) * 32 + 16;
+          if (
+            world.map[i] !== GROUND ||
+            world.tanks.some((t) => Math.abs(t.x - cx) < 29 && Math.abs(t.y - cy) < 29)
+          )
+            return;
+          this.travel = 0;
+          this.walls = this.walls.filter((k) => world.map[k] === BRICK);
+          if (this.walls.length >= 5) {
+            let old = this.walls.shift();
+            world.map[old] = GROUND;
+            delete world.damage[old];
+          }
+          world.map[i] = BRICK;
+          world.damage[i] = 0;
+          this.walls.push(i);
+        }
+        get volleySize() {
+          return this.p[5] ? 2 + this.p[5] : 1;
+        }
+        freeBulletSlots() {
+          const capacity = Math.max(BASE_BULLET_LIMIT, this.volleySize) + 2 * this.p[12];
+          return capacity - world.bullets.filter((bullet) => bullet.owner === this.id).length;
+        }
+        fire() {
+          if (this.cool) return;
+          const count = Math.min(this.volleySize, this.freeBulletSlots());
+          if (count <= 0) return;
+          this.cool = Math.ceil(Math.max(100, 500 - 100 * this.p[0]) / STEP);
+          // 空位不足时也以炮口为中线均匀散射，单发沿正前方飞行。
+          for (let i = 0; i < count; i++) {
+            const angle = (i - (count - 1) / 2) * 0.16;
+            this.shots++;
+            world.bullets.push(new Bullet(this, angle));
+          }
+          sound("shot");
+          spark(this.x + DX[this.dir] * 16, this.y + DY[this.dir] * 16, "#ffe197", 4);
+        }
+      }
+      // ===== 6. 子弹类：子步进防止高速子弹穿过薄碰撞区 =====
+      function spark(x, y, c, n) {
+        for (let i = 0; i < n; i++)
+          particles.push({
+            x,
+            y,
+            c,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5,
+            life: 7 + Math.random() * 10,
+          });
+      }
+      class Bullet {
+        constructor(t, angle) {
+          this.owner = t.id;
+          this.x = t.x + DX[t.dir] * 12;
+          this.y = t.y + DY[t.dir] * 12;
+          this.a = (t.dir * Math.PI) / 2 - Math.PI / 2 + angle;
+          this.speed = BASE_BULLET_SPEED + t.p[8] * 6;
+          this.hitBricks = [];
+          this.bounces = 1 + t.p[7] * 2;
+          this.home = t.p[11] > 0 && t.shots % 2 === 0;
+          this.life = 480;
+        }
+        impact(direct) {
+          if (direct) {
+            const attacker = world.tanks[this.owner],
+              target = world.tanks[1 - this.owner];
+            let damage = 20 + 5 * attacker.p[1];
+            if (target.shield) {
+              target.shield--;
+              damage = 0;
+            }
+            const absorbed = Math.min(target.armor, damage);
+            target.armor -= absorbed;
+            damage -= absorbed;
+            if (damage > 0) {
+              target.hp = Math.max(0, target.hp - damage);
+              attacker.hp = Math.min(attacker.max, attacker.hp + LIFESTEAL_HP * attacker.p[9]);
+            }
+            spark(target.x, target.y, damage ? "#f3ad5e" : "#9bdbed", 10);
+            sound("hit");
+          }
+          return false;
+        }
+        update() {
+          if (--this.life <= 0) return false;
+          const self = world.tanks[this.owner],
+            enemy = world.tanks[1 - this.owner];
+          if (this.home) {
+            const leadFrames = Math.min(5, Math.hypot(enemy.x - this.x, enemy.y - this.y) / this.speed),
+              target = Math.atan2(enemy.y + enemy.vy * leadFrames - this.y, enemy.x + enemy.vx * leadFrames - this.x),
+              delta = Math.atan2(Math.sin(target - this.a), Math.cos(target - this.a));
+            const turn = HOMING_TURN * self.p[11];
+            this.a += limit(delta, -turn, turn);
+          }
+          let steps = Math.ceil(this.speed / 3);
+          for (let k = 0; k < steps; k++) {
+            let vx = (Math.cos(this.a) * this.speed) / steps,
+              vy = (Math.sin(this.a) * this.speed) / steps,
+              nx = this.x + vx,
+              ny = this.y + vy;
+            let i = cell(nx, ny),
+              type = world.map[i];
+            if (type === STEEL) {
+              if (this.bounces-- <= 0) return this.impact(false);
+              const hx = tile(nx, this.y) === STEEL,
+                hy = tile(this.x, ny) === STEEL;
+              this.a = Math.atan2(hy || !hx ? -vy : vy, hx || !hy ? -vx : vx);
+              spark(this.x, this.y, "#d2d7b8", 3);
+              continue;
+            }
+            this.x = nx;
+            this.y = ny;
+            // 穿过一格砖墙可能耗时数帧，同一发炮弹对该格只结算一次。
+            if (type === BRICK && !this.hitBricks.includes(i)) {
+              this.hitBricks.push(i);
+              world.damage[i] = (world.damage[i] || 0) + 1;
+              if (world.damage[i] >= 2) {
+                world.map[i] = GROUND;
+                delete world.damage[i];
+                for (const tank of world.tanks) tank.walls = tank.walls.filter((w) => w !== i);
+              }
+              spark(nx, ny, "#b98861", 6);
+              if (!self.p[1]) return this.impact(false);
+            }
+            if (Math.abs(nx - enemy.x) < 14 && Math.abs(ny - enemy.y) < 14) {
+              return this.impact(true);
+            }
+          }
+          return true;
+        }
+      }
+      // ===== 7. 增幅系统 =====
+      const perks = [
+        ["🔥", "急速射击", "射击冷却缩短 100ms"],
+        ["💥", "穿甲弹", "穿过并损伤砖墙，伤害 +5"],
+        ["❤️", "钢铁之躯", "每层生命上限 +40"],
+        ["⚡", "氮气加速", "移动速度 +1.5"],
+        ["🛡️", "能量护盾", "每局多格挡一次伤害"],
+        ["🌪️", "三连发", "三层分别齐射 3 / 4 / 5 发"],
+        ["🔰", "装甲护盾", "每层提供 20 点护盾，每局补满"],
+        ["🔁", "反弹专家", "钢墙反弹次数 +2"],
+        ["🚀", "超速子弹", "子弹速度 +6"],
+        ["🩸", "吸血炮", `每层命中敌方车体回复 ${LIFESTEAL_HP} HP`],
+        ["🏗️", "工兵坦克", "身后筑墙，叠加加快建造"],
+        ["🌀", "追踪导弹", "每两发有一发预判追踪，叠加强化转向"],
+        ["⚔️", "双管炮", "同屏子弹数量上限 +2"],
+      ];
+      function cardsFor(id) {
+        const pool = perks.map((_, i) => i).filter((i) => world.tanks[id].p[i] < 3),
+          result = [];
+        while (result.length < 3 && pool.length)
+          result.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
+        const rest = perks.map((_, i) => i).filter((i) => !result.includes(i));
+        while (result.length < 3) result.push(rest.splice(Math.floor(rand() * rest.length), 1)[0]);
+        return result;
+      }
+      function choose(id, n, remote = false) {
+        if (state !== "draft" || draft.pick[id] !== null || !Number.isInteger(n) || n < 0 || n > 2)
+          return;
+        if (mode === "online" && !remote && id !== net.role) return;
+        if (mode === "online" && net.role === 1 && !remote) {
+          net.send({ t: "choice", n });
+          return;
+        }
+        draft.pick[id] = n;
+        sound("pick");
+        showDraft();
+        if (mode === "online") net.snapshot();
+        if (draft.pick.every((v) => v !== null)) draft.wait = 24;
+      }
+      function endDraft() {
+        for (let i = 0; i < 2; i++) {
+          const t = world.tanks[i],
+            n = draft.offers[i][draft.pick[i]];
+          t.p[n] = Math.min(3, t.p[n] + 1);
+        }
+        nextRound();
+      }
+      // ===== 8. AI 控制器 =====
+      class AIController {
+        constructor() {
+          this.route = [];
+          this.targetCell = -1;
+          this.intent = "";
+          this.aimDir = -1;
+          this.aimFrames = 0;
+          this.state = "追踪";
+          this.atWaypoint = true;
+          this.replanAfter = 0;
+          this.axis = -1;
+          this.dodgeFrames = 0;
+          this.dodgeDir = -1;
+          this.nextDodgeCheck = 0;
+          this.strafeFrames = 0;
+          this.strafeDir = -1;
+        }
+        center(index) {
+          const cols = world.arena.cols;
+          return { x: ((index % cols) + 0.5) * TILE, y: (Math.floor(index / cols) + 0.5) * TILE };
+        }
+        // 沿实际炮口射线检查掩体。水面、草丛允许子弹通过。
+        firingLane(from, target) {
+          const dx = target.x - from.x,
+            dy = target.y - from.y;
+          if (Math.min(Math.abs(dx), Math.abs(dy)) > 12) return -1;
+          const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : dy > 0 ? 2 : 0;
+          const distance = Math.max(Math.abs(dx), Math.abs(dy));
+          for (let n = 12; n <= distance; n += 4) {
+            const terrain = tile(from.x + DX[dir] * n, from.y + DY[dir] * n);
+            if (terrain === STEEL || terrain === BRICK) return -1;
+          }
+          return dir;
+        }
+        // 按可达格寻找最近的射击位置。仅当普通地面无法接敌时才考虑开砖墙。
+        plan(t, enemy, intent, allowBrick = false) {
+          const cols = world.arena.cols,
+            start = cell(t.x, t.y),
+            goal = cell(enemy.x, enemy.y);
+          const parent = new Int32Array(world.map.length).fill(-1),
+            queue = [start];
+          parent[start] = start;
+          let end = start,
+            best = -Infinity;
+          for (let head = 0; head < queue.length; head++) {
+            const cur = queue[head],
+              pos = this.center(cur);
+            if (intent === "追踪") {
+              if (cur === goal || (world.map[cur] !== BRICK && this.firingLane(pos, enemy) >= 0)) {
+                end = cur;
+                break;
+              }
+            } else if (intent === "逃跑") {
+              const distance = Math.hypot(pos.x - enemy.x, pos.y - enemy.y);
+              const score = Math.min(distance, 250) + (this.firingLane(pos, enemy) < 0 ? 24 : 0);
+              if (score > best) {
+                best = score;
+                end = cur;
+              }
+              if (distance >= 230 && this.firingLane(pos, enemy) < 0) break;
+            }
+            for (const step of [-cols, 1, cols, -1]) {
+              const next = cur + step,
+                terrain = world.map[next];
+              if (
+                parent[next] !== -1 ||
+                terrain === STEEL ||
+                terrain === WATER ||
+                (!allowBrick && terrain === BRICK)
+              )
+                continue;
+              parent[next] = cur;
+              queue.push(next);
+            }
+          }
+          if (
+            intent === "追踪" &&
+            end === start &&
+            parent[goal] === -1 &&
+            this.firingLane(this.center(start), enemy) < 0 &&
+            !allowBrick
+          )
+            return this.plan(t, enemy, intent, true);
+          const route = [end];
+          while (route[route.length - 1] !== start) route.push(parent[route[route.length - 1]]);
+          return route.reverse();
+        }
+        // 只对快要进入车身范围的来弹做横移，并先确认弹道和逃生方向畅通。
+        dodge(t) {
+          if (!difficulty) return null;
+          const speed = 3 + 1.5 * t.p[3];
+          if (this.dodgeFrames) {
+            this.dodgeFrames--;
+            if (fits(t.x + DX[this.dodgeDir] * speed, t.y + DY[this.dodgeDir] * speed, t.id))
+              return { d: this.dodgeDir, f: false };
+            this.dodgeFrames = 0;
+          }
+          if (world.frame < this.nextDodgeCheck) return null;
+          this.nextDodgeCheck = world.frame + (difficulty === 2 ? 1 : 2);
+          let earliest = Infinity,
+            escape = -1;
+          for (const b of world.bullets) {
+            if (b.owner === t.id) continue;
+            const vx = Math.cos(b.a),
+              vy = Math.sin(b.a),
+              rx = t.x - b.x,
+              ry = t.y - b.y;
+            const along = rx * vx + ry * vy,
+              side = ry * vx - rx * vy,
+              frames = along / b.speed;
+            if (
+              along <= 0 ||
+              frames >= [0, 28, 38][difficulty] ||
+              frames >= earliest ||
+              Math.abs(side) > 19
+            )
+              continue;
+            let blocked = false;
+            for (let n = 0; n < along; n += 8) {
+              const terrain = tile(b.x + n * vx, b.y + n * vy);
+              if (terrain === STEEL || (terrain === BRICK && !world.tanks[b.owner].p[1])) {
+                blocked = true;
+                break;
+              }
+            }
+            if (blocked) continue;
+            const sides = Math.abs(vx) > Math.abs(vy) ? [0, 2] : [1, 3];
+            let best = -Infinity;
+            for (const d of sides) {
+              const distance = 24;
+              if (![8, 16, distance].every((n) => fits(t.x + DX[d] * n, t.y + DY[d] * n, t.id)))
+                continue;
+              const clearance = Math.abs(side + distance * (DY[d] * vx - DX[d] * vy));
+              const score = clearance + (t.dir === d ? 2 : 0);
+              if (score > best) {
+                best = score;
+                escape = d;
+                earliest = frames;
+              }
+            }
+          }
+          if (escape < 0) return null;
+          // 来弹还远时，先利用已对准的射线还击，再完成整段横移。
+          const counter =
+            earliest > Math.ceil(20 / speed) + 3 &&
+            t.cool <= 1 &&
+            t.freeBulletSlots() > 0
+              ? this.shotDirection(t, world.tanks[0])
+              : -1;
+          this.dodgeDir = escape;
+          this.dodgeFrames = Math.ceil(24 / speed) - 1;
+          this.nextDodgeCheck = world.frame + this.dodgeFrames + 6;
+          this.route = [];
+          this.aimDir = -1;
+          this.state = "闪避";
+          if (counter >= 0) {
+            this.dodgeFrames++;
+            t.dir = counter;
+            return { d: -1, f: true };
+          }
+          return { d: escape, f: false };
+        }
+        choosePerk(offers) {
+          if (!difficulty) return Math.floor(rand() * offers.length);
+          // 按本局双方配置评估三张卡，优先补齐生存或进攻的短板。
+          const [enemy, self] = world.tanks;
+          const values = [8, 7, self.max < 100 ? 12 : 7, 10, 8, 9, 7, 3, 10, 10, 3, 6, 5];
+          if (enemy.p[5]) values[6] += 2;
+          if (self.p[5]) {
+            values[12] += 5;
+            values[9] += 2;
+          }
+          if (self.p[1]) values[0] += 2;
+          const scores = offers.map((id) => values[id] - self.p[id] * 1.5 + rand());
+          return scores.indexOf(Math.max(...scores));
+        }
+        shotDirection(t, enemy) {
+          const direct = this.firingLane(t, enemy);
+          if (difficulty !== 2 || (!enemy.vx && !enemy.vy)) return direct;
+          // 根据实际弹速估计横穿射线的时刻，碰到墙时停止外推。
+          const flight = Math.min(
+            28,
+            Math.round(Math.hypot(t.x - enemy.x, t.y - enemy.y) / (BASE_BULLET_SPEED + 6 * t.p[8])),
+          );
+          let x = enemy.x,
+            y = enemy.y;
+          for (let i = 0; i < flight; i++) {
+            if (!fits(x + enemy.vx, y + enemy.vy, enemy.id)) break;
+            x += enemy.vx;
+            y += enemy.vy;
+          }
+          return this.firingLane(t, { x, y });
+        }
+        update() {
+          const t = world.tanks[1],
+            enemy = world.tanks[0];
+          const evade = this.dodge(t);
+          if (evade) return evade;
+          const shot = this.shotDirection(t, enemy);
+          if (shot >= 0) {
+            if (this.aimDir !== shot) {
+              this.aimDir = shot;
+              this.aimFrames = 0;
+            }
+            this.aimFrames++;
+            // 瞄准稳定才转动车身，短暂经过射线的目标不会打断当前动作。
+            if (this.aimFrames >= [7, 2, 1][difficulty]) {
+              this.state = "瞄准";
+              t.dir = shot;
+              if (difficulty >= 1 && t.cool <= 1) {
+                // 开火后横移，让玩家难以预判位置
+                this.strafeDir = shot % 2 === 0
+                  ? (world.frame % 2 === 0 ? 1 : 3)
+                  : (world.frame % 2 === 0 ? 0 : 2);
+                this.strafeFrames = difficulty === 2 ? 10 : 6;
+                this.aimFrames = -5; // 强制重新稳定瞄准，制造走位间隙
+              }
+              return { d: -1, f: true };
+            }
+          } else {
+            this.aimDir = -1;
+            this.aimFrames = 0;
+          }
+          const distance = Math.hypot(t.x - enemy.x, t.y - enemy.y);
+          const hpThresh = [0.3, 0.25, 0.2][difficulty];
+          const retreat = t.hp < t.max * hpThresh && distance < (this.intent === "逃跑" ? 205 : 130);
+          const intent = retreat ? "逃跑" : "追踪";
+          const goal = cell(enemy.x, enemy.y);
+          // 在路点交接时更新路线，避免走到半格又回头找原来的格心。
+          if (
+            !this.route.length ||
+            (this.atWaypoint &&
+              world.frame >= this.replanAfter &&
+              (goal !== this.targetCell || this.intent !== intent))
+          ) {
+            this.route = this.plan(t, enemy, intent);
+            this.intent = intent;
+            this.targetCell = goal;
+            this.replanAfter = world.frame + [38, 15, 8][difficulty];
+            this.axis = -1;
+          }
+          // 开火后横移，让玩家难以预判
+          if (this.strafeFrames > 0 && difficulty >= 1) {
+            this.strafeFrames--;
+            const spd = 3 + 1.5 * t.p[3];
+            if (fits(t.x + DX[this.strafeDir] * spd, t.y + DY[this.strafeDir] * spd, t.id))
+              return { d: this.strafeDir, f: false };
+            this.strafeFrames = 0;
+          }
+          this.atWaypoint = false;
+          this.state = intent;
+          const speed = 3 + 1.5 * t.p[3];
+          while (this.route.length) {
+            const index = this.route[0],
+              pos = this.center(index),
+              dx = pos.x - t.x,
+              dy = pos.y - t.y;
+            if (dx === 0 && dy === 0) {
+              this.route.shift();
+              this.axis = -1;
+              continue;
+            }
+            // 一个路点先走完一条轴，最后一步按剩余距离走，避免横纵交替和越过格心。
+            if (this.axis < 0 || (this.axis === 0 ? dx === 0 : dy === 0))
+              this.axis = Math.abs(dx) >= Math.abs(dy) ? 0 : 1;
+            const dir = this.axis === 0 ? (dx > 0 ? 1 : 3) : dy > 0 ? 2 : 0;
+            const step = Math.min(speed, Math.abs(this.axis === 0 ? dx : dy));
+            if (fits(t.x + DX[dir] * step, t.y + DY[dir] * step, t.id)) {
+              if (t.x + DX[dir] * step === pos.x && t.y + DY[dir] * step === pos.y) {
+                this.route.shift();
+                this.axis = -1;
+                this.atWaypoint = true;
+              }
+              return { d: dir, f: false, step };
+            }
+            if (
+              world.map[index] === BRICK &&
+              cell(t.x + DX[dir] * 17, t.y + DY[dir] * 17) === index
+            ) {
+              this.state = "破墙";
+              t.dir = dir;
+              return { d: -1, f: true };
+            }
+            this.route = [];
+            break;
+          }
+          return emptyInput();
+        }
+      }
+      // ===== 9. 联机模块：本地预测输入，主机裁定局分与增幅 =====
+      class NetworkManager {
+        constructor() {
+          this.ws = null;
+          this.role = 0;
+          this.room = "";
+          this.token = "";
+          this.remote = emptyInput();
+          this.lastPhase = "lobby";
+          this.connected = false;
+          this.remotes = [];
+          this.addr = "ws://localhost:8080";
+        }
+        send(packet) {
+          if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify(packet));
+        }
+        close() {
+          const socket = this.ws;
+          this.ws = null;
+          this.connected = false;
+          if (socket) {
+            socket.onclose = socket.onmessage = socket.onerror = null;
+            socket.close();
+          }
+        }
+        connect(action, room = "") {
+          this.close();
+          let socket;
+          try {
+            const url = new URL(this.addr);
+            if (!["ws:", "wss:"].includes(url.protocol)) throw Error();
+            socket = new WebSocket(url);
+            this.ws = socket;
+          } catch {
+            return lobbyMessage("地址格式有误，请输入 ws:// 或 wss:// 地址。");
+          }
+          const retry = action === "resume";
+          let accepted = false;
+          this.remote = emptyInput();
+          this.remotes = [];
+          lobbyMessage("正在连接服务器…");
+          socket.onopen = () =>
+            this.send({ t: action, room, token: retry ? this.token : undefined });
+          socket.onmessage = (e) => {
+            try {
+              const m = JSON.parse(e.data);
+              if (m.t === "error") {
+                this.close();
+                if (retry) disconnectScreen(m.msg);
+                else lobbyMessage(m.msg);
+                return;
+              }
+              if (m.t === "seated") {
+                accepted = true;
+                this.role = m.role;
+                this.token = m.token;
+                this.room = m.room;
+                if (retry) disconnectScreen("座位已恢复，等待另一方重新连接。");
+                else waitRoom();
+                return;
+              }
+              if (m.t === "ready") {
+                this.connected = true;
+                this.remotes = [];
+                this.remote = emptyInput();
+                if (this.role === 0) {
+                  if (m.resume && world) {
+                    state = this.lastPhase === "disconnected" ? "battle" : this.lastPhase;
+                    restoreUI();
+                    this.snapshot();
+                  } else startMatch("online");
+                }
+                return;
+              }
+              if (m.t === "gone") {
+                this.lost();
+                return;
+              }
+              if (!this.connected) return;
+              if (m.t === "in" && validInput(m.i)) {
+                this.remoteFire ||= m.i.f;
+                this.remote = m.i;
+                return;
+              }
+              if (m.t === "snap" && this.role === 1) {
+                this.apply(m);
+                return;
+              }
+              if (this.role === 0) {
+                if (m.t === "choice") choose(1, m.n, true);
+                if (m.t === "pause" && state === "battle") pauseGame(true);
+                if (m.t === "resumeGame" && state === "paused") resumeGame(true);
+                if (m.t === "again" && state === "victory") startMatch("online");
+              }
+            } catch {
+              this.close();
+              this.lost("同步中断，请重新连接房间。");
+            }
+          };
+          socket.onerror = () => {};
+          socket.onclose = () => {
+            if (socket !== this.ws) return;
+            this.ws = null;
+            if (accepted || retry) this.lost("与服务器的连接已断开。");
+            else
+              lobbyMessage("连接失败。联机需要启动本地 WebSocket 服务器，可使用配套的 server.js。");
+          };
+        }
+        lost(msg = "对手已断线") {
+          if (["battle", "draft", "victory", "paused"].includes(state)) this.lastPhase = state;
+          this.connected = false;
+          this.remote = emptyInput();
+          disconnectScreen(msg);
+        }
+        snapshot() {
+          if (this.role === 0 && this.connected && world)
+            this.send({ t: "snap", phase: state, w: world, d: draft, b: banner });
+        }
+        apply(m) {
+          if (!m.w || !["battle", "draft", "victory", "paused"].includes(m.phase)) return;
+          const before = state,
+            oldDraft = JSON.stringify(draft?.pick);
+          world = m.w;
+          world.tanks = world.tanks.map((t) => Object.assign(Object.create(Tank.prototype), t));
+          world.bullets = world.bullets.map((b) =>
+            Object.assign(Object.create(Bullet.prototype), b),
+          );
+          draft = m.d;
+          banner = m.b;
+          state = m.phase;
+          if (before !== state) {
+            if (state === "draft") draftCursor = [0, 0];
+            particles = [];
+            this.remotes = [];
+            restoreUI();
+          } else if (state === "draft" && oldDraft !== JSON.stringify(draft.pick)) showDraft();
+          updateHUD();
+        }
+      }
+      const validInput = (i) =>
+        !!i && Number.isInteger(i.d) && i.d >= -1 && i.d <= 3 && typeof i.f === "boolean";
+      // ===== 10. 游戏主循环 =====
+      function simulate() {
+        if (state === "draft") {
+          if (mode === "online" && net.role === 1) return;
+          if (draft.wait > 0 && --draft.wait === 0) endDraft();
+          return;
+        }
+        if (state !== "battle") return;
+        world.frame++;
+        banner = Math.max(0, banner - 1);
+        let inputs = [readPlayer(0), emptyInput()];
+        if (mode === "online") {
+          const local = inputs[0];
+          inputs[net.role] = local;
+          inputs[1 - net.role] = { d: net.remote.d, f: net.remote.f || Boolean(net.remoteFire) };
+          net.remoteFire = false;
+          net.send({ t: "in", i: local });
+        } else inputs[1] = mode === "solo" ? ai.update() : readPlayer(1);
+        world.tanks.forEach((t, i) => t.update(inputs[i]));
+        world.bullets = world.bullets.filter((b) => b.update());
+        particles = particles.filter((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          return --p.life > 0;
+        });
+        if (mode === "online") {
+          let opp = world.tanks[1 - net.role];
+          net.remotes.push({ x: opp.x, y: opp.y, dir: opp.dir });
+          if (net.remotes.length > 3) net.remotes.shift();
+        }
+        if (world.tanks.some((t) => t.hp <= 0) && (mode !== "online" || net.role === 0))
+          finishRound();
+        if (world.frame % 6 === 0) updateHUD();
+      }
+      let prevTime = 0,
+        acc = 0,
+        lastFps = 0,
+        frames = 0,
+        lastCover = -500;
+      function loop(time) {
+        let delta = prevTime ? Math.min(time - prevTime, 100) : STEP;
+        prevTime = time;
+        acc += delta;
+        while (acc >= STEP) {
+          simulate();
+          if (mode === "online" && net?.connected && ++ticks % 30 === 0) net.snapshot();
+          acc -= STEP;
+        }
+        frames++;
+        if (time - lastFps >= 1000) {
+          fps = Math.round((frames * 1000) / (time - lastFps));
+          frames = 0;
+          lastFps = time;
+        }
+        if (!$("#viewport").hidden && world) drawBattle();
+        else if (time - lastCover >= 100) {
+          paintCover(time);
+          lastCover = time;
+        }
+        if (motorGain)
+          motorGain.gain.setTargetAtTime(
+            !muted && state === "battle" && world.tanks.some((t) => t.vx || t.vy) ? 0.013 : 0,
+            audio.currentTime,
+            0.08,
+          );
+        requestAnimationFrame(loop);
+      }
+      // 缓存未改变的地形，战斗帧只重绘水纹、活动对象及发生变化的格子。
+      const terrainCanvas = document.createElement("canvas"),
+        foliageCanvas = document.createElement("canvas");
+      for (const layer of [terrainCanvas, foliageCanvas]) {
+        layer.width = field.width;
+        layer.height = field.height;
+      }
+      const terrainBrush = terrainCanvas.getContext("2d"),
+        foliageBrush = foliageCanvas.getContext("2d"),
+        tileCache = [];
+      let lastTerrainSeed = null;
+      function drawBattle() {
+        const newMap = lastTerrainSeed !== world.seed;
+        lastTerrainSeed = world.seed;
+        if (field.width !== world.arena.cols * TILE || field.height !== world.arena.rows * TILE) {
+          for (const layer of [field, terrainCanvas, foliageCanvas]) {
+            layer.width = world.arena.cols * TILE;
+            layer.height = world.arena.rows * TILE;
+          }
+          tileCache.length = 0;
+        }
+        for (let i = 0; i < world.map.length; i++) {
+          const type = world.map[i],
+            stamp = type + 8 * (world.damage[i] || 0),
+            x = (i % world.arena.cols) * 32,
+            y = Math.floor(i / world.arena.cols) * 32;
+          if (newMap || tileCache[i] !== stamp) {
+            foliageBrush.clearRect(x, y, 32, 32);
+            if (type === GRASS) grass(foliageBrush, x, y, i);
+            drawTile(terrainBrush, type, x, y, i);
+            tileCache[i] = stamp;
+          } else if (type === WATER && world.frame % 16 === 0)
+            drawTile(terrainBrush, type, x, y, i);
+        }
+        ctx.drawImage(terrainCanvas, 0, 0);
+        for (const t of world.tanks) {
+          if (t.hp <= 0) {
+            sparkWreck(t);
+            continue;
+          }
+          let pose = t;
+          if (mode === "online" && t.id !== net.role && net.remotes.length) pose = net.remotes[0];
+          tankSprite(ctx, pose, mode === "solo" && t.id ? "#909687" : colors[t.id]);
+          if (t.shield || t.armor) {
+            ctx.strokeStyle = "#9bdbeda8";
+            ctx.strokeRect(pose.x - 16, pose.y - 16, 32, 32);
+          }
+        }
+        for (const b of world.bullets) {
+          const c = b.owner ? "#abe0ef" : "#ffe097";
+          box(ctx, "#ad8253", b.x - Math.cos(b.a) * 5 - 1, b.y - Math.sin(b.a) * 5 - 1, 3, 3);
+          box(ctx, c, b.x - 2, b.y - 2, 5, 5);
+        }
+        ctx.drawImage(foliageCanvas, 0, 0);
+        for (let p of particles) {
+          box(ctx, p.c, p.x, p.y, 3, 3);
+        }
+        if (banner > 0 && state === "battle") {
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, banner / 18);
+          box(ctx, "#172014e8", field.width / 2 - 87, 24, 174, 39);
+          ctx.textAlign = "center";
+          ctx.font = 'bold 16px "Courier New", monospace';
+          ctx.fillStyle = "#f6cf62";
+          ctx.fillText(`ROUND 0${world.round}  /  07`, field.width / 2, 49);
+          ctx.restore();
+        }
+      }
+      function sparkWreck(t) {
+        box(ctx, "#272721", t.x - 11, t.y - 9, 22, 18);
+        box(ctx, "#b47544", t.x - 5, t.y - 7, 8, 8);
+      }
+      // ===== 11. UI 渲染 =====
+      function dlg(tag, title, body, wide = false) {
+        const d = $("#dialog");
+        d.className = "dialog" + (wide ? " wide" : "");
+        d.innerHTML = `<div class="eyebrow">${tag}</div><h2 id="dialogTitle">${title}</h2>${body}`;
+        $("#overlay").hidden = false;
+        if (state !== "draft")
+          d.querySelector("button:not(:disabled),input")?.focus({ preventScroll: true });
+      }
+      function hideDlg() {
+        if ($("#overlay").contains(document.activeElement)) document.activeElement.blur();
+        $("#overlay").hidden = true;
+        $("#game").classList.remove("blur");
+      }
+      const row = (a, title, desc = "") =>
+        `<button class="rowbtn" data-act="${a}">${title}${desc ? `<small>${desc}</small>` : ""}</button>`;
+      const btn = (a, text, primary = false) =>
+        `<button class="${primary ? "primary" : "minor"}" data-act="${a}">${text}</button>`;
+      function makeMenu() {
+        const subtitles = ["VS COMPUTER", "LOCAL MULTIPLAYER", "ONLINE BATTLE"],
+          types = ["solo", "local", "online"];
+        const feats = [
+          ["三难度 AI 对战", "7 局 4 胜决战", "局间增幅选牌"],
+          ["同屏双人对战", "7 局 4 胜决战", "独立分屏操控"],
+          ["WebSocket 联机", "实时同步对战", "跨网络连接"],
+        ];
+        const tagline = ["易 / 中 / 难", "双人本地", "需要服务端"];
+        $("#modes").innerHTML = names
+          .map(
+            (name, i) =>
+              `<button class="mode" data-mode="${i}"><div class="modeTop"><canvas width="34" height="24"></canvas><span>${["1P", "2P", "NET"][i]}</span></div><strong>${name}</strong><small>${subtitles[i]}</small><div class="modeDiff">${tagline[i]}</div><ul class="modeFeats">${feats[i].map((f) => `<li>${f}</li>`).join("")}</ul><i class="go">→</i></button>`,
+          )
+          .join("");
+        document.querySelectorAll(".mode").forEach((b, i) => {
+          icon(b.querySelector("canvas"), types[i], [colors[0], colors[1], "#a6bb8d"][i]);
+          b.onpointerenter = b.onfocus = () => selectMode(i);
+          b.onclick = () => activate(i);
+        });
+        selectMode(selected);
+        const tips = [
+          "砖墙承受两发炮弹即摧毁；钢墙可反弹炮弹，善用反弹可奇袭对手",
+          "草丛可隐蔽坦克；水面仅子弹可飞越，坦克无法通行",
+          "先赢 4 局获胜；每局结束后可选择一张强化增幅卡",
+          "三连发叠加穿甲弹，可快速摧毁砖墙推进战线",
+          "吸血炮命中敌方越多，可回复更多 HP",
+          "追踪导弹配合高速子弹，大幅提升命中率",
+          "工兵坦克行进时会在身后自动建造砖墙作为掩体",
+        ];
+        let tipIdx = 1;
+        setInterval(() => {
+          const el = $("#tickerText");
+          if (!el) return;
+          el.classList.add("fade");
+          setTimeout(() => { el.textContent = tips[tipIdx++ % tips.length]; el.classList.remove("fade"); }, 350);
+        }, 5000);
+      }
+      function selectMode(i) {
+        selected = i;
+        document.querySelectorAll(".mode").forEach((b, n) => b.classList.toggle("sel", i === n));
+      }
+      function activate(i) {
+        wakeAudio();
+        if (i === 0) {
+          state = "difficulty";
+          dlg(
+            "SOLO CAMPAIGN",
+            "选择难度",
+            row("d0", "简单", "主动追击，瞄准后开火") +
+              row("d1", "普通", "绕墙追击，横移躲弹") +
+              row("d2", "困难", "预判走位，提前闪避") +
+              `<div class="actions">${btn("menu", "返回主菜单")}</div>`,
+          );
+        } else if (i === 1) startMatch("local");
+        else {
+          mode = "online";
+          net = new NetworkManager();
+          lobby();
+        }
+      }
+      function lobby() {
+        state = "lobby";
+        dlg(
+          "ONLINE BATTLE",
+          "联机对战",
+          `<label for="address">WebSocket 服务器地址</label><input id="address" spellcheck="false" value="ws://localhost:8080"><label for="room">房间号（加入时填写）</label><input id="room" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="6 位房间号"><div class="actions">${btn("create", "创建房间", true)}${btn("join", "加入房间")}</div><div class="notice" id="lobbyMsg" role="status"></div><p class="hint">房主下载服务端，在文件所在目录运行 <code>node server.js</code>。同一局域网内，对手填写房主的局域网 IP 和端口 8080。</p><div class="actions">${btn("download", "下载 server.js")}${btn("menu", "返回主菜单")}</div>`,
+        );
+      }
+      function lobbyMessage(text) {
+        const el = $("#lobbyMsg");
+        if (el) el.textContent = text;
+      }
+      function downloadServer() {
+        const walk = document.createTreeWalker(document, NodeFilter.SHOW_COMMENT);
+        let comment;
+        while ((comment = walk.nextNode())) {
+          const marker = "NODE_WEBSOCKET_SERVER";
+          if (comment.data.trimStart().startsWith(marker)) {
+            const text = comment.data
+                .slice(comment.data.indexOf(marker) + marker.length)
+                .trimStart(),
+              u = URL.createObjectURL(new Blob([text], { type: "text/javascript" })),
+              a = document.createElement("a");
+            a.href = u;
+            a.download = "server.js";
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(u), 3000);
+            break;
+          }
+        }
+      }
+      function waitRoom() {
+        state = "waiting";
+        dlg(
+          "ONLINE LOBBY",
+          "等待对手加入",
+          `<p>把房间号发给对手</p><div class="roomnum">${net.room}</div><p>双方就位后自动开始。</p><div class="actions">${btn("menu", "取消并返回")}</div>`,
+        );
+      }
+      function disconnectScreen(msg) {
+        state = "disconnected";
+        dlg(
+          "CONNECTION LOST",
+          "对手已断线",
+          `<p id="reason"></p><div class="actions">${btn("reconnect", "重新连接", true)}${btn("menu", "返回主菜单")}</div><div class="notice" id="lobbyMsg" role="status"></div>`,
+        );
+        $("#reason").textContent = msg;
+      }
+      function showHelp() {
+        if (!["menu", "battle", "paused"].includes(state)) return;
+        helpBack = state;
+        if (state === "battle") {
+          pauseGame();
+          if (mode === "online") return;
+        }
+        state = "help";
+        dlg(
+          "FIELD MANUAL",
+          "操作指南",
+          `<table class="helpTable"><tr><th>操作</th><th>玩家 1</th><th>本地玩家 2</th></tr><tr><td>移动 / 朝向</td><td>W A S D</td><td>↑ ← ↓ →</td></tr><tr><td>射击</td><td>空格</td><td>Enter</td></tr><tr><td>选择增幅</td><td>A / D + 空格</td><td>← / → + Enter</td></tr></table><p>先赢 4 局即获胜。砖墙承受两发炮弹，钢墙可反弹炮弹，水面可飞越，草丛可隐蔽。</p><p>联机战斗均用 WASD 和空格，选卡按各自玩家编号操作。按 Esc 暂停或继续。</p>${btn("closeHelp", "我知道了", true)}`,
+        );
+      }
+      function updateHUD() {
+        if (!world) return;
+        let h = $("#hud");
+        if (!h.querySelector(".score")) {
+          const player = (id) =>
+            `<section><div class="playerhead" style="color:${colors[id]}"><canvas width="34" height="24" id="icon${id}"></canvas><span id="player${id}"></span></div><div class="hpval" id="hp${id}"></div><div class="hpbar"><i id="bar${id}"></i></div><div class="upgrades" id="up${id}"></div></section>`;
+          h.innerHTML = `<div class="hudhead">// 战场状态</div>${player(0)}<div class="score"><small>本场局分</small><b id="scoreval"></b><small id="roundval"></small><div class="rounddots"></div></div>${player(1)}<div class="hudbottom"><span id="fps"></span><button class="minor" data-act="pause">Esc · 暂停</button></div>`;
+        }
+        world.tanks.forEach((t, i) => {
+          icon($("#icon" + i), "solo", mode === "solo" && i ? "#a3aa98" : colors[i]);
+          $("#player" + i).textContent =
+            mode === "solo" && i
+              ? "CPU · " + ["简单", "普通", "困难"][difficulty]
+              : `P${i + 1}${mode === "online" ? (i === net.role ? " · 你" : " · 对手") : ""}`;
+          $("#hp" + i).textContent =
+            `HP ${Math.ceil(t.hp)} / ${t.max}` + (t.p[6] ? ` · 盾 ${t.armor}` : "");
+          $("#bar" + i).style.width = `${(100 * t.hp) / t.max}%`;
+          const active = t.p.map((v, j) => (v ? [j, v] : null)).filter(Boolean);
+          $("#up" + i).innerHTML = active.length
+            ? active
+                .slice(0, 8)
+                .map(
+                  ([j, v]) =>
+                    `<span title="${perks[j][1]} ×${v}">${perks[j][0]}${v > 1 ? "×" + v : ""}</span>`,
+                )
+                .join(" ") + (active.length > 8 ? ` +${active.length - 8}` : "")
+            : "暂无增幅";
+        });
+        $("#scoreval").textContent = world.score.join(" - ");
+        $("#roundval").textContent = `第 ${world.round} 局 · ${world.arena.name}`;
+        $(".rounddots").innerHTML = Array.from(
+          { length: 7 },
+          (_, i) => `<i style="background:${colors[world.history[i]] || "transparent"}"></i>`,
+        ).join("");
+        $("#fps").textContent =
+          `${fps} FPS · ${["单人挑战", "本地双人", "联机对战"][["solo", "local", "online"].indexOf(mode)]}`;
+      }
+      // 光标属于本地输入设备，主机快照只同步已确认的卡片。
+      let draftCursor = [0, 0];
+      function ownsDraft(id) {
+        return mode === "local" || id === (mode === "online" ? net.role : 0);
+      }
+      function showDraft() {
+        const result =
+          world.result < 0
+            ? "双方同归于尽 · 平局重赛"
+            : `${playerName(world.result)} 赢得第 ${world.round} 局`;
+        const panels = draft.offers
+          .map((offer, id) => {
+            const can = ownsDraft(id),
+              locked = draft.pick[id] !== null,
+              active = locked ? draft.pick[id] : draftCursor[id];
+            const status = locked
+              ? "已确认"
+              : !can
+                ? "等待对手确认"
+                : id === 0
+                  ? "A / D 切换 · 空格确认"
+                  : "← / → 切换 · Enter 确认";
+            const cards = offer
+              .map((n, i) => {
+                const current = active === i && (can || locked);
+                return `<button class="perk ${current ? (locked ? "chosen" : "cursor") : ""}" ${!can || locked ? "disabled" : ""} data-act="pick${id}${i}"><kbd>${current ? (locked ? "✓ 已确认" : "▶ 当前") : "　"}</kbd><span>${perks[n][0]}</span><b>${perks[n][1]}</b><small>${perks[n][2]}</small></button>`;
+              })
+              .join("");
+            return `<section><h3>${playerName(id)} · ${status}</h3><div class="picks">${cards}</div></section>`;
+          })
+          .join("");
+        dlg(
+          "ROUND COMPLETE",
+          "局间增幅",
+          `<p>${result}　${world.score.join(" - ")}</p><div class="drafts">${panels}</div><p class="hint">双方确认后开始下一局。增幅保留至本场结束。</p>`,
+          true,
+        );
+        $("#dialog").tabIndex = -1;
+        $("#dialog").focus({ preventScroll: true });
+      }
+      function playerName(id) {
+        return mode === "solo" && id === 1 ? "电脑" : `玩家 ${id + 1}`;
+      }
+      function victory() {
+        const id = world.score[0] === 4 ? 0 : 1;
+        dlg(
+          "MATCH COMPLETE",
+          `${playerName(id)} 获胜`,
+          `<div class="resultscore">${world.score.join(" - ")}</div><p>率先拿下四局，赢得本场对决。</p><div class="actions">${btn("again", "再来一场", true)}${btn("menu", "返回主菜单")}</div>`,
+        );
+      }
+      function showPause() {
+        $("#game").classList.add("blur");
+        dlg(
+          "GAME PAUSED",
+          "游戏已暂停",
+          `<div class="actions">${btn("resume", "继续游戏", true)}${btn("menu", "返回主菜单")}</div>`,
+        );
+      }
+      // ===== 12. 输入管理：最近按下的方向优先，切换界面时清除按键 =====
+      const held = new Set(),
+        tapped = new Set();
+      function clearInput() {
+        held.clear();
+        tapped.clear();
+      }
+      const dirs = [
+        ["KeyW", "KeyD", "KeyS", "KeyA"],
+        ["ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft"],
+      ];
+      function readPlayer(id) {
+        let d = -1;
+        for (let key of held) {
+          let index = dirs[id].indexOf(key);
+          if (index !== -1) d = index;
+        }
+        const key = id ? "Enter" : "Space",
+          pressed = tapped.delete(key);
+        return { d, f: held.has(key) || pressed };
+      }
+      function handleAction(a) {
+        wakeAudio();
+        if (a === "menu") return mainMenu();
+        if (/^d[0-2]$/.test(a)) {
+          difficulty = Number(a[1]);
+          return startMatch("solo");
+        }
+        if (a === "pause") return pauseGame();
+        if (a === "resume") return resumeGame();
+        if (a === "again") {
+          if (mode === "online" && net.role === 1) return net.send({ t: "again" });
+          return startMatch(mode);
+        }
+        if (a === "closeHelp") {
+          if (helpBack === "battle") {
+            state = "paused";
+            resumeGame();
+          } else if (helpBack === "paused") {
+            state = "paused";
+            showPause();
+          } else mainMenu();
+          return;
+        }
+        if (a.startsWith("pick")) return choose(+a[4], +a[5]);
+        if (a === "download") return downloadServer();
+        if (a === "reconnect") return net.connect("resume", net.room);
+        if (a === "create" || a === "join") {
+          let room = $("#room").value.trim();
+          if (a === "join" && !/^\d{6}$/.test(room)) return lobbyMessage("请输入 6 位数字房间号。");
+          net.addr = $("#address").value.trim();
+          net.connect(a, room);
+        }
+      }
+      document.addEventListener("click", (e) => {
+        let b = e.target.closest("[data-act]");
+        if (b && !b.disabled) handleAction(b.dataset.act);
+      });
+      window.addEventListener("keydown", (e) => {
+        let k = e.code;
+        wakeAudio();
+        if (k === "Escape") {
+          e.preventDefault();
+          if (e.repeat) return;
+          if (state === "battle") pauseGame();
+          else if (state === "paused") resumeGame();
+          else if (state === "help") handleAction("closeHelp");
+          else if (["difficulty", "lobby", "waiting", "disconnected", "victory"].includes(state))
+            mainMenu();
+          return;
+        }
+        if (e.target.matches("input")) return;
+        if (!$("#overlay").hidden && k === "Tab") {
+          let items = [...$("#dialog").querySelectorAll("input,button:not(:disabled)")];
+          if (
+            items.length &&
+            ((e.shiftKey && document.activeElement === items[0]) ||
+              (!e.shiftKey && document.activeElement === items.at(-1)))
+          ) {
+            e.preventDefault();
+            items[e.shiftKey ? items.length - 1 : 0].focus();
+          }
+          return;
+        }
+        if (state === "menu") {
+          if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(k)) {
+            e.preventDefault();
+            selectMode((selected + (["ArrowLeft", "ArrowUp"].includes(k) ? 2 : 1)) % 3);
+            document.querySelector(`[data-mode="${selected}"]`).focus();
+          }
+          if (k === "Enter" && !e.target.closest(".utility")) {
+            e.preventDefault();
+            if (!e.repeat) activate(selected);
+          }
+          return;
+        }
+        if (state === "draft") {
+          const controls = [
+            ["KeyA", "KeyD", "Space"],
+            ["ArrowLeft", "ArrowRight", "Enter"],
+          ];
+          for (let id = 0; id < 2; id++) {
+            const action = controls[id].indexOf(k);
+            if (action < 0) continue;
+            e.preventDefault();
+            if (e.repeat || !ownsDraft(id) || draft.pick[id] !== null) break;
+            if (action === 2) choose(id, draftCursor[id]);
+            else {
+              draftCursor[id] = (draftCursor[id] + (action === 0 ? 2 : 1)) % 3;
+              showDraft();
+            }
+            break;
+          }
+          return;
+        }
+        if (state === "battle" && [...dirs.flat(), "Space", "Enter"].includes(k)) {
+          e.preventDefault();
+          if (!e.repeat) {
+            held.add(k);
+            if (k === "Space" || k === "Enter") tapped.add(k);
+          }
+        } else if (
+          ["difficulty", "paused", "victory"].includes(state) &&
+          ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(k)
+        ) {
+          e.preventDefault();
+          const items = [...$("#dialog").querySelectorAll("button")],
+            inc = ["ArrowUp", "ArrowLeft"].includes(k) ? -1 : 1;
+          items[
+            (items.indexOf(document.activeElement) + inc + items.length) % items.length
+          ]?.focus();
+        }
+      });
+      window.addEventListener("keyup", (e) => held.delete(e.code));
+      window.addEventListener("blur", () => {
+        clearInput();
+        if (state === "battle" && mode !== "online") pauseGame();
+      });
+      // ===== 13. 游戏状态机 =====
+      function mainMenu() {
+        net?.close();
+        net = null;
+        world = null;
+        draft = null;
+        mode = "solo";
+        state = "menu";
+        clearInput();
+        hideDlg();
+        $("#menu").hidden = false;
+        $("#viewport").hidden = true;
+        $("#systemStatus").textContent = "SYSTEM READY";
+        $("#footerKeys").textContent = "支持键盘与鼠标选择模式";
+        $("#help").disabled = false;
+        selectMode(selected);
+      }
+      function startMatch(which) {
+        mode = which;
+        world = { random: seedValue(), score: [0, 0], history: [], round: 1, tanks: [] };
+        const first = Math.floor(rand() * smallMaps.length);
+        world.opening = [first, (first + 1 + Math.floor(rand() * 2)) % smallMaps.length];
+        nextRound();
+      }
+      function nextRound() {
+        let powers = world.tanks.map((t) => t.p);
+        world.round = world.history.length + 1;
+        world.seed = Math.floor(rand() * 4294967296);
+        world.arena = roundArena(world.round, world.opening);
+        world.map = makeMap(world.seed, world.arena);
+        world.damage = {};
+        world.frame = 0;
+        world.bullets = [];
+        world.tanks = [0, 1].map((i) => new Tank(i, powers[i] || Array(perks.length).fill(0)));
+        ai = new AIController();
+        state = "battle";
+        draft = null;
+        particles = [];
+        banner = 100;
+        clearInput();
+        restoreUI();
+        if (mode === "online") net.snapshot();
+      }
+      function finishRound() {
+        let [a, b] = world.tanks;
+        let winner = a.hp <= 0 && b.hp <= 0 ? -1 : a.hp <= 0 ? 1 : 0;
+        world.result = winner;
+        if (winner >= 0) {
+          world.score[winner]++;
+          world.history.push(winner);
+        }
+        sound("boom");
+        clearInput();
+        if (world.score.includes(4)) {
+          state = "victory";
+          draft = null;
+          victory();
+          sound("win");
+        } else {
+          state = "draft";
+          draft = {
+            offers: [cardsFor(0), cardsFor(1)],
+            pick: [null, null],
+
+            wait: 0,
+          };
+          draftCursor = [0, 0];
+          if (mode === "solo") draft.pick[1] = ai.choosePerk(draft.offers[1]);
+          showDraft();
+        }
+        updateHUD();
+        if (mode === "online") net.snapshot();
+      }
+      function pauseGame(remote = false) {
+        if (state !== "battle") return;
+        clearInput();
+        if (mode === "online" && net.role === 1 && !remote) return net.send({ t: "pause" });
+        state = "paused";
+        showPause();
+        if (mode === "online") net.snapshot();
+      }
+      function resumeGame(remote = false) {
+        if (state !== "paused") return;
+        if (mode === "online" && net.role === 1 && !remote) return net.send({ t: "resumeGame" });
+        state = "battle";
+        clearInput();
+        hideDlg();
+        if (mode === "online") net.snapshot();
+      }
+      function fitViewport() {
+        let view = $("#viewport"),
+          s = Math.min(
+            1,
+            $("#menu").parentElement.clientWidth / 1032,
+            ($("#shell").getBoundingClientRect().width -
+              parseFloat(getComputedStyle($("#shell")).paddingLeft) * 2) /
+              1032,
+          );
+        view.style.width = `${1032 * s}px`;
+        view.style.height = `${672 * s}px`;
+        $("#game").style.transform = `scale(${s})`;
+      }
+      function restoreUI() {
+        clearInput();
+        $("#menu").hidden = true;
+        $("#viewport").hidden = false;
+        $("#systemStatus").textContent = "BATTLE SYSTEM";
+        $("#footerKeys").textContent =
+          mode === "local"
+            ? "P1　WASD + 空格　 /　 P2　方向键 + Enter"
+            : "WASD 移动　 /　 空格射击　 /　 Esc 暂停";
+        $("#help").disabled = mode === "online";
+        fitViewport();
+        hideDlg();
+        updateHUD();
+        if (state === "paused") showPause();
+        else if (state === "victory") victory();
+        else if (state === "draft") showDraft();
+      }
+      // ===== 14. 初始化与入口 =====
+      $("#sound").onclick = () => {
+        wakeAudio();
+        muted = !muted;
+        $("#sound").setAttribute("aria-pressed", String(!muted));
+        $("#sound span").textContent = muted ? "静音" : "音效";
+        icon($("#sound canvas"), "sound", "#d2d7c3");
+        if (!muted) sound("pick");
+      };
+      $("#help").onclick = showHelp;
+      for (const c of document.querySelectorAll("[data-icon]"))
+        icon(c, c.dataset.icon, c.dataset.icon === "logo" ? "#323728" : "#c4cbb7");
+      makeMenu();
+      paintCover(0);
+      window.addEventListener("resize", fitViewport);
+      requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>
+<!-- NODE_WEBSOCKET_SERVER
+// 保存为 server.js，使用 Node.js 18 或更高版本运行 node server.js。
+// 仅使用内置模块。房间的两个座位由重连令牌保留十分钟。
+const http = require('node:http');
+const {createHash, randomBytes, randomInt} = require('node:crypto');
+const rooms = new Map();
+const port = Number(process.env.PORT || 8080);
+const server = http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/plain; charset=utf-8'});res.end('Tank Battalion 联机服务器运行中');});
+function writeFrame(socket,data,opcode=1){
+  if (!socket || socket.destroyed || !socket.writable) return;
+  const body=Buffer.isBuffer(data)?data:Buffer.from(JSON.stringify(data));
+  const header=Buffer.alloc(body.length<126?2:4);header[0]=128|opcode;
+  if(body.length<126)header[1]=body.length;else{header[1]=126;header.writeUInt16BE(body.length,2);}
+  socket.write(Buffer.concat([header,body]));
+}
+function handle(socket,m){
+  const fail=msg=>writeFrame(socket,{t:'error',msg});
+  if(!m||typeof m!=='object')return;
+  if(!socket.seat){
+    let code=String(m.room||''),room=rooms.get(code),id;
+    if(m.t==='create'){
+      do{code=String(randomInt(100000,1000000));}while(rooms.has(code));
+      room={seats:[null,null],started:false,timer:null};rooms.set(code,room);id=0;
+    }else if(m.t==='join'){
+      if(!room || !room.seats[0]?.socket)return fail('房间不存在或房主已离开。');
+      if(room.seats[1])return fail('房间已满。');id=1;
+    }else if(m.t==='resume'){
+      id=room?.seats.findIndex(s=>s&&s.token===m.token)??-1;
+      if(id<0)return fail('房间已过期，请返回主菜单重新创建。');
+      const old=room.seats[id].socket;if(old && old!==socket){old.seat=null;old.destroy();}
+    }else return fail('请先创建或加入房间。');
+    const seat=room.seats[id]||{token:randomBytes(18).toString('hex')};seat.socket=socket;room.seats[id]=seat;socket.seat={code,id};
+    writeFrame(socket,{t:'seated',room:code,role:id,token:seat.token});
+    if(room.seats.every(s=>s?.socket)){clearTimeout(room.timer);for(const s of room.seats)writeFrame(s.socket,{t:'ready',resume:room.started});room.started=true;}
+  }else{
+    const {code,id}=socket.seat,room=rooms.get(code);if(!room)return;
+    if(['in','choice','pause','resumeGame','again'].includes(m.t)||(id===0&&m.t==='snap'))writeFrame(room.seats[1-id]?.socket,m);
+  }
+}
+server.on('upgrade',(req,socket,head)=>{
+  const key=req.headers['sec-websocket-key'];if(!key||req.headers.upgrade?.toLowerCase()!=='websocket')return socket.destroy();
+  const accept=createHash('sha1').update(key+'258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
+  socket.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+'\r\n\r\n');
+  let buf=Buffer.alloc(0),fragments=[],total=0;socket.setNoDelay(true);
+  function read(chunk){try{buf=Buffer.concat([buf,chunk]);while(buf.length>=2){
+    const op=buf[0]&15,fin=!!(buf[0]&128);let size=buf[1]&127,offset=2;if(!(buf[1]&128)||size===127)return socket.destroy();
+    if(size===126){if(buf.length<4)return;size=buf.readUInt16BE(2);offset=4;}if(size>60000)return socket.destroy();
+    if(buf.length<offset+4+size)return;const mask=buf.subarray(offset,offset+4),body=buf.subarray(offset+4,offset+4+size);buf=buf.subarray(offset+4+size);
+    for(let i=0;i<body.length;i++)body[i]^=mask[i%4];if(op===8){writeFrame(socket,body,8);return socket.end();}if(op===9){writeFrame(socket,body,10);continue;}if(op===10)continue;
+    if(op!==0&&op!==1)return socket.destroy();fragments.push(body);total+=size;if(total>60000)return socket.destroy();
+    if(fin){const msg=JSON.parse(Buffer.concat(fragments).toString());fragments=[];total=0;handle(socket,msg);}
+  }}catch{socket.destroy();}}
+  socket.on('data',read);socket.on('error',()=>socket.destroy());socket.on('close',()=>{
+    if(!socket.seat)return;const {code,id}=socket.seat,room=rooms.get(code);if(!room||room.seats[id]?.socket!==socket)return;
+    room.seats[id].socket=null;writeFrame(room.seats[1-id]?.socket,{t:'gone'});clearTimeout(room.timer);
+    room.timer=setTimeout(()=>{rooms.delete(code);for(const s of room.seats)s?.socket?.end();},600000);room.timer.unref();
+  });if(head.length)read(head);
+});
+server.on('error',e=>{console.error('服务器启动失败：',e.message);process.exitCode=1;});
+server.listen(port,()=>console.log('Tank Battalion · WebSocket port '+port));
+-->
